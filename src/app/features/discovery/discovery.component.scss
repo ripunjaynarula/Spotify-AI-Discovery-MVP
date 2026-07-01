@@ -1,0 +1,402 @@
+@use 'variables' as vars;
+@use 'mixins' as mix;
+
+.discovery {
+  min-height: 100vh;
+  position: relative;
+
+  &__container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: vars.$space-10 vars.$content-padding vars.$space-20;
+
+    @include mix.mobile {
+      padding: vars.$space-6 vars.$content-padding-mobile vars.$space-16;
+    }
+  }
+
+  // ── Back Button ────────────────────────────────────────────────────────────
+
+  &__back {
+    @include mix.flex-center;
+    display: inline-flex;
+    gap: vars.$space-2;
+    background: none;
+    border: none;
+    color: vars.$color-text-secondary;
+    font-size: vars.$font-size-base;
+    font-weight: vars.$font-weight-medium;
+    font-family: vars.$font-family;
+    cursor: pointer;
+    padding: vars.$space-2 0;
+    margin-bottom: vars.$space-8;
+    transition: color vars.$transition-fast;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    &:hover {
+      color: vars.$color-text-primary;
+    }
+
+    &:focus-visible {
+      @include mix.focus-ring;
+      border-radius: vars.$radius-sm;
+    }
+  }
+
+  // ── Mode Header ────────────────────────────────────────────────────────────
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: vars.$space-5;
+    margin-bottom: vars.$space-8;
+  }
+
+  &__mode-icon {
+    @include mix.flex-center;
+    width: 64px;
+    height: 64px;
+    border-radius: vars.$radius-xl;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: #fff;
+    }
+  }
+
+  &__mode-label {
+    font-size: vars.$font-size-sm;
+    font-weight: vars.$font-weight-bold;
+    color: vars.$color-text-muted;
+    letter-spacing: vars.$letter-spacing-wider;
+    text-transform: uppercase;
+    margin-bottom: vars.$space-1;
+  }
+
+  &__mode-title {
+    font-size: clamp(vars.$font-size-2xl, 4vw, vars.$font-size-3xl);
+    font-weight: vars.$font-weight-black;
+    color: vars.$color-text-primary;
+    letter-spacing: vars.$letter-spacing-tight;
+    line-height: vars.$line-height-tight;
+  }
+
+  // ── Progress ───────────────────────────────────────────────────────────────
+
+  &__progress {
+    @include mix.flex-between;
+    gap: vars.$space-4;
+    margin-bottom: vars.$space-10;
+  }
+
+  &__progress-bar {
+    flex: 1;
+    height: 3px;
+    background: vars.$color-bg-elevated;
+    border-radius: vars.$radius-full;
+    overflow: hidden;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    background: vars.$gradient-brand;
+    border-radius: vars.$radius-full;
+    transition: width vars.$transition-slow;
+  }
+
+  &__progress-label {
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text-muted;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  // ── Question ───────────────────────────────────────────────────────────────
+
+  &__question-section {
+    animation: fadeIn 250ms ease forwards;
+  }
+
+  &__question-text {
+    font-size: clamp(vars.$font-size-xl, 3vw, vars.$font-size-2xl);
+    font-weight: vars.$font-weight-bold;
+    color: vars.$color-text-primary;
+    letter-spacing: vars.$letter-spacing-tight;
+    line-height: vars.$line-height-normal;
+    margin-bottom: vars.$space-8;
+  }
+
+  // ── Options ────────────────────────────────────────────────────────────────
+
+  &__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: vars.$space-3;
+    margin-bottom: vars.$space-6;
+  }
+
+  &__option {
+    @include mix.button-base;
+    padding: vars.$space-3 vars.$space-6;
+    background: vars.$color-bg-card;
+    border: 1.5px solid vars.$color-border;
+    border-radius: vars.$radius-full;
+    font-size: vars.$font-size-base;
+    font-weight: vars.$font-weight-medium;
+    color: vars.$color-text-secondary;
+    position: relative;
+    overflow: hidden;
+    transition: all vars.$transition-fast;
+    cursor: pointer;
+
+    .discovery__option-check {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      margin-left: vars.$space-2;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity vars.$transition-fast, transform vars.$transition-fast;
+    }
+
+    &:hover:not(.discovery__option--selected) {
+      background: vars.$color-bg-card-hover;
+      border-color: vars.$color-text-secondary;
+      color: vars.$color-text-primary;
+    }
+
+    &--selected {
+      background: rgba(29, 185, 84, 0.12);
+      border-color: vars.$color-brand;
+      color: vars.$color-brand;
+      font-weight: vars.$font-weight-semibold;
+
+      .discovery__option-check {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    &:focus-visible {
+      @include mix.focus-ring;
+    }
+  }
+
+  // ── Custom Input ───────────────────────────────────────────────────────────
+
+  &__custom-input {
+    margin-bottom: vars.$space-6;
+  }
+
+  &__custom-field {
+    width: 100%;
+
+    ::ng-deep {
+      .mat-mdc-outlined-notched-outline .mdc-notched-outline__leading,
+      .mat-mdc-outlined-notched-outline .mdc-notched-outline__notch,
+      .mat-mdc-outlined-notched-outline .mdc-notched-outline__trailing {
+        border-color: vars.$color-border !important;
+      }
+
+      &:hover .mat-mdc-outlined-notched-outline .mdc-notched-outline__leading,
+      &:hover .mat-mdc-outlined-notched-outline .mdc-notched-outline__notch,
+      &:hover .mat-mdc-outlined-notched-outline .mdc-notched-outline__trailing {
+        border-color: vars.$color-text-secondary !important;
+      }
+
+      &.mat-focused .mat-mdc-outlined-notched-outline .mdc-notched-outline__leading,
+      &.mat-focused .mat-mdc-outlined-notched-outline .mdc-notched-outline__notch,
+      &.mat-focused .mat-mdc-outlined-notched-outline .mdc-notched-outline__trailing {
+        border-color: vars.$color-brand !important;
+      }
+
+      input {
+        color: vars.$color-text-primary;
+      }
+
+      .mdc-floating-label {
+        color: vars.$color-text-secondary;
+      }
+    }
+  }
+
+  // ── Action ─────────────────────────────────────────────────────────────────
+
+  &__action {
+    @include mix.flex-column;
+    gap: vars.$space-3;
+  }
+
+  &__btn-primary {
+    @include mix.button-primary;
+    width: 100%;
+    padding: vars.$space-4 vars.$space-8;
+    font-size: vars.$font-size-md;
+    border-radius: vars.$radius-full;
+    font-family: vars.$font-family;
+    transition: all vars.$transition-fast;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    &--disabled,
+    &:disabled {
+      background: vars.$color-bg-elevated !important;
+      color: vars.$color-text-disabled !important;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+
+  &__btn-secondary {
+    @include mix.button-secondary;
+    padding: vars.$space-3 vars.$space-6;
+    font-family: vars.$font-family;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__hint {
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text-muted;
+    text-align: center;
+  }
+
+  // ── Generating Overlay ─────────────────────────────────────────────────────
+
+  &__generating-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    @include mix.flex-center;
+    z-index: vars.$z-overlay;
+    animation: fadeIn 200ms ease forwards;
+  }
+
+  &__generating-content {
+    @include mix.flex-column;
+    align-items: center;
+    text-align: center;
+    gap: vars.$space-6;
+    max-width: 400px;
+    padding: vars.$space-8;
+  }
+
+  &__spinner {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    @include mix.flex-center;
+  }
+
+  &__spinner-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: spin 1.4s linear infinite;
+  }
+
+  &__spinner-circle {
+    stroke: vars.$color-brand;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 75;
+    transition: stroke-dashoffset 200ms ease;
+  }
+
+  &__spinner-logo {
+    color: vars.$color-brand;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  &__generating-title {
+    font-size: vars.$font-size-2xl;
+    font-weight: vars.$font-weight-bold;
+    color: vars.$color-text-primary;
+    letter-spacing: vars.$letter-spacing-tight;
+  }
+
+  &__generating-subtitle {
+    font-size: vars.$font-size-base;
+    color: vars.$color-text-secondary;
+    line-height: vars.$line-height-relaxed;
+  }
+
+  &__generating-steps {
+    @include mix.flex-column;
+    gap: vars.$space-3;
+    width: 100%;
+  }
+
+  &__generating-step {
+    @include mix.flex-center;
+    gap: vars.$space-3;
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text-muted;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: vars.$color-brand;
+    }
+  }
+
+  // ── Error ──────────────────────────────────────────────────────────────────
+
+  &__error {
+    animation: fadeIn 300ms ease forwards;
+  }
+
+  &__error-card {
+    @include mix.flex-column;
+    align-items: center;
+    text-align: center;
+    gap: vars.$space-4;
+    padding: vars.$space-16 vars.$space-8;
+  }
+
+  &__error-icon {
+    font-size: 56px;
+    width: 56px;
+    height: 56px;
+    color: vars.$color-error;
+  }
+
+  &__error-title {
+    font-size: vars.$font-size-2xl;
+    font-weight: vars.$font-weight-bold;
+    color: vars.$color-text-primary;
+  }
+
+  &__error-message {
+    font-size: vars.$font-size-base;
+    color: vars.$color-text-secondary;
+    max-width: 400px;
+  }
+
+  &__error-actions {
+    display: flex;
+    gap: vars.$space-4;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

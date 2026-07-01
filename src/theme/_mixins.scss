@@ -1,0 +1,215 @@
+@use 'variables' as *;
+
+// ============================================================
+// Responsive Mixins
+// ============================================================
+
+@mixin mobile {
+  @media (max-width: #{$breakpoint-tablet - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: #{$breakpoint-tablet}) and (max-width: #{$breakpoint-desktop - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$breakpoint-desktop}) {
+    @content;
+  }
+}
+
+@mixin tablet-up {
+  @media (min-width: #{$breakpoint-tablet}) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (min-width: #{$breakpoint-desktop}) {
+    @content;
+  }
+}
+
+// ============================================================
+// Layout Mixins
+// ============================================================
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin absolute-fill {
+  position: absolute;
+  inset: 0;
+}
+
+// ============================================================
+// Typography Mixins
+// ============================================================
+
+@mixin heading-1 {
+  font-size: clamp($font-size-2xl, 4vw, $font-size-4xl);
+  font-weight: $font-weight-black;
+  letter-spacing: $letter-spacing-tight;
+  line-height: $line-height-tight;
+}
+
+@mixin heading-2 {
+  font-size: clamp($font-size-xl, 3vw, $font-size-3xl);
+  font-weight: $font-weight-bold;
+  letter-spacing: $letter-spacing-tight;
+  line-height: $line-height-tight;
+}
+
+@mixin heading-3 {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  letter-spacing: $letter-spacing-tight;
+}
+
+@mixin section-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  letter-spacing: $letter-spacing-wider;
+  text-transform: uppercase;
+  color: $color-text-secondary;
+}
+
+@mixin text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@mixin text-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ============================================================
+// Component Mixins
+// ============================================================
+
+@mixin card-base {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  transition: background $transition-base, transform $transition-base, box-shadow $transition-base;
+
+  &:hover {
+    background: $color-bg-card-hover;
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+}
+
+@mixin glass-surface {
+  background: $gradient-glass;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@mixin focus-ring {
+  outline: 2px solid $color-brand;
+  outline-offset: 2px;
+}
+
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  font-family: $font-family;
+  font-weight: $font-weight-semibold;
+  border: none;
+  border-radius: $radius-full;
+  cursor: pointer;
+  transition: all $transition-fast;
+  white-space: nowrap;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  background: $color-brand;
+  color: #000000;
+  padding: $space-3 $space-6;
+
+  &:hover:not(:disabled) {
+    background: $color-brand-light;
+    transform: scale(1.02);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+@mixin button-secondary {
+  @include button-base;
+  background: transparent;
+  color: $color-text-primary;
+  border: 1px solid $color-border-light;
+  padding: $space-3 $space-6;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: $color-text-secondary;
+  }
+}
+
+// ============================================================
+// Animation Mixins
+// ============================================================
+
+@mixin fade-in($duration: 300ms, $delay: 0ms) {
+  animation: fadeIn $duration ease forwards;
+  animation-delay: $delay;
+  opacity: 0;
+}
+
+@mixin slide-up($duration: 300ms, $delay: 0ms) {
+  animation: slideUp $duration ease forwards;
+  animation-delay: $delay;
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+@mixin skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    $color-bg-tertiary 25%,
+    $color-bg-elevated 50%,
+    $color-bg-tertiary 75%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}

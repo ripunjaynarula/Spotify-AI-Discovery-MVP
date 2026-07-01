@@ -1,0 +1,101 @@
+@use 'variables' as vars;
+@use 'mixins' as mix;
+
+.error-banner {
+  display: flex;
+  gap: vars.$space-4;
+  padding: vars.$space-6;
+  background: rgba(244, 67, 54, 0.08);
+  border: 1px solid rgba(244, 67, 54, 0.2);
+  border-radius: vars.$radius-lg;
+
+  @include mix.mobile {
+    flex-direction: column;
+    gap: vars.$space-3;
+  }
+
+  &--page {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: vars.$space-16 vars.$space-8;
+    background: transparent;
+    border: none;
+
+    .error-banner__icon-wrapper {
+      width: 80px;
+      height: 80px;
+      background: rgba(244, 67, 54, 0.1);
+
+      mat-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    .error-banner__actions {
+      justify-content: center;
+    }
+  }
+
+  &__icon-wrapper {
+    @include mix.flex-center;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: vars.$radius-full;
+    background: rgba(244, 67, 54, 0.15);
+
+    mat-icon {
+      color: vars.$color-error;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  &__content {
+    @include mix.flex-column;
+    gap: vars.$space-1;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: vars.$font-size-md;
+    font-weight: vars.$font-weight-semibold;
+    color: vars.$color-text-primary;
+  }
+
+  &__message {
+    font-size: vars.$font-size-base;
+    color: vars.$color-text-secondary;
+    line-height: vars.$line-height-relaxed;
+  }
+
+  &__actions {
+    display: flex;
+    gap: vars.$space-3;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: vars.$space-2;
+  }
+
+  &__action {
+    font-size: vars.$font-size-sm !important;
+    color: vars.$color-text-secondary !important;
+    border-color: vars.$color-border-light !important;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover {
+      color: vars.$color-text-primary !important;
+      border-color: vars.$color-text-secondary !important;
+    }
+  }
+}

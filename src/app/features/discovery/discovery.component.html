@@ -1,0 +1,155 @@
+<div class="discovery page-enter">
+
+  <!-- Generating overlay -->
+  <div class="discovery__generating-overlay" *ngIf="isGenerating()" role="status" aria-live="polite" aria-label="Generating your playlist">
+    <div class="discovery__generating-content">
+      <div class="discovery__spinner" aria-hidden="true">
+        <svg viewBox="0 0 50 50" class="discovery__spinner-svg">
+          <circle class="discovery__spinner-circle" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>
+        </svg>
+        <div class="discovery__spinner-logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+          </svg>
+        </div>
+      </div>
+      <h2 class="discovery__generating-title">Curating your playlist</h2>
+      <p class="discovery__generating-subtitle">AI is understanding your intent and searching the Spotify catalog</p>
+      <div class="discovery__generating-steps" aria-hidden="true">
+        <div class="discovery__generating-step">
+          <mat-icon>psychology</mat-icon>
+          <span>Understanding intent</span>
+        </div>
+        <div class="discovery__generating-step">
+          <mat-icon>search</mat-icon>
+          <span>Searching catalog</span>
+        </div>
+        <div class="discovery__generating-step">
+          <mat-icon>playlist_add</mat-icon>
+          <span>Building playlist</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div class="discovery__error" *ngIf="generationError() && !isGenerating()" role="alert">
+    <div class="discovery__container">
+      <div class="discovery__error-card">
+        <mat-icon class="discovery__error-icon">error_outline</mat-icon>
+        <h2 class="discovery__error-title">Something went wrong</h2>
+        <p class="discovery__error-message">{{ generationError() }}</p>
+        <div class="discovery__error-actions">
+          <button mat-raised-button class="discovery__btn-primary" (click)="onRetry()">
+            <mat-icon>refresh</mat-icon>
+            Try again
+          </button>
+          <button mat-stroked-button class="discovery__btn-secondary" routerLink="/">
+            <mat-icon>home</mat-icon>
+            Go home
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main flow -->
+  <div class="discovery__flow" *ngIf="mode() && !isGenerating() && !generationError()">
+    <div class="discovery__container">
+
+      <!-- Back button -->
+      <button
+        class="discovery__back"
+        (click)="onBack()"
+        [attr.aria-label]="currentStep() === 0 ? 'Go back to home' : 'Go back to previous question'"
+      >
+        <mat-icon>arrow_back</mat-icon>
+        <span>{{ currentStep() === 0 ? 'Home' : 'Back' }}</span>
+      </button>
+
+      <!-- Mode header -->
+      <header class="discovery__header">
+        <div class="discovery__mode-icon" [style.background]="mode()?.gradient" aria-hidden="true">
+          <mat-icon>{{ mode()?.icon }}</mat-icon>
+        </div>
+        <div class="discovery__header-text">
+          <p class="discovery__mode-label">Discovery mode</p>
+          <h1 class="discovery__mode-title">{{ mode()?.title }}</h1>
+        </div>
+      </header>
+
+      <!-- Progress -->
+      <div class="discovery__progress" role="progressbar" [attr.aria-valuenow]="currentStep() + 1" [attr.aria-valuemax]="totalSteps()" [attr.aria-valuetext]="'Question ' + (currentStep() + 1) + ' of ' + totalSteps()">
+        <div class="discovery__progress-bar">
+          <div class="discovery__progress-fill" [style.width.%]="progressPercent()"></div>
+        </div>
+        <span class="discovery__progress-label">{{ currentStep() + 1 }} of {{ totalSteps() }}</span>
+      </div>
+
+      <!-- Question -->
+      <div class="discovery__question-section" *ngIf="currentQuestion() as question">
+        <h2 class="discovery__question-text" id="current-question">
+          {{ question.text }}
+        </h2>
+
+        <!-- Options -->
+        <div
+          class="discovery__options"
+          role="group"
+          [attr.aria-labelledby]="'current-question'"
+        >
+          <button
+            *ngFor="let option of question.options; trackBy: trackByOption"
+            class="discovery__option"
+            [class.discovery__option--selected]="isSelected(question.id, option)"
+            [attr.aria-pressed]="isSelected(question.id, option)"
+            [attr.aria-label]="option"
+            (click)="selectOption(question.id, option)"
+            matRipple
+            matRippleColor="rgba(29, 185, 84, 0.12)"
+          >
+            <span class="discovery__option-text">{{ option }}</span>
+            <mat-icon class="discovery__option-check" aria-hidden="true">check</mat-icon>
+          </button>
+        </div>
+
+        <!-- Custom input -->
+        <div class="discovery__custom-input" *ngIf="question.allowCustom">
+          <mat-form-field appearance="outline" class="discovery__custom-field">
+            <mat-label>Or type your own...</mat-label>
+            <input
+              matInput
+              [value]="customInputValue()"
+              (input)="onCustomInput($any($event.target).value)"
+              [attr.aria-label]="'Custom answer for: ' + question.text"
+              maxlength="100"
+              placeholder="Type a custom answer"
+            />
+            <mat-icon matSuffix aria-hidden="true">edit</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <!-- Action -->
+        <div class="discovery__action">
+          <button
+            class="discovery__btn-primary"
+            [class.discovery__btn-primary--disabled]="!canProceed()"
+            [disabled]="!canProceed()"
+            [attr.aria-disabled]="!canProceed()"
+            (click)="onNext()"
+            [attr.aria-label]="isLastStep() ? 'Generate my playlist' : 'Continue to next question'"
+          >
+            <span>{{ isLastStep() ? 'Generate my playlist' : 'Continue' }}</span>
+            <mat-icon>{{ isLastStep() ? 'auto_awesome' : 'arrow_forward' }}</mat-icon>
+          </button>
+
+          <p class="discovery__hint" *ngIf="!canProceed()">
+            Select an option or type a custom answer to continue
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

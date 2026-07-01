@@ -1,0 +1,204 @@
+@use 'variables' as vars;
+@use 'mixins' as mix;
+
+.track-card {
+  display: grid;
+  grid-template-columns: 32px 48px 1fr 1fr 120px 60px 40px;
+  align-items: center;
+  gap: vars.$space-4;
+  padding: vars.$space-3 vars.$space-4;
+  border-radius: vars.$radius-md;
+  transition: background vars.$transition-fast;
+  cursor: default;
+
+  @include mix.mobile {
+    grid-template-columns: 32px 40px 1fr 60px 32px;
+
+    .track-card__album,
+    .track-card__genre {
+      display: none;
+    }
+  }
+
+  &:hover {
+    background: vars.$color-bg-card-hover;
+
+    .track-card__number {
+      display: none;
+    }
+
+    .track-card__artwork-overlay {
+      opacity: 1;
+    }
+
+    .track-card__playing-icon {
+      display: none;
+    }
+  }
+
+  &--playing {
+    .track-card__title {
+      color: vars.$color-brand;
+    }
+  }
+
+  &__index {
+    @include mix.flex-center;
+    width: 32px;
+    flex-shrink: 0;
+  }
+
+  &__number {
+    font-size: vars.$font-size-base;
+    color: vars.$color-text-secondary;
+    font-variant-numeric: tabular-nums;
+
+    &.hidden {
+      display: none;
+    }
+  }
+
+  &__playing-icon {
+    font-size: 18px;
+    color: vars.$color-brand;
+    display: none;
+
+    &.visible {
+      display: block;
+    }
+  }
+
+  &__artwork-wrapper {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: vars.$radius-sm;
+    overflow: hidden;
+
+    @include mix.mobile {
+      width: 40px;
+      height: 40px;
+    }
+  }
+
+  &__artwork {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__artwork-overlay {
+    @include mix.absolute-fill;
+    @include mix.flex-center;
+    background: rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transition: opacity vars.$transition-fast;
+    cursor: pointer;
+
+    mat-icon {
+      color: vars.$color-text-primary;
+      font-size: 24px;
+    }
+  }
+
+  &__info {
+    min-width: 0;
+    @include mix.flex-column;
+    gap: vars.$space-1;
+  }
+
+  &__title {
+    @include mix.text-truncate;
+    font-size: vars.$font-size-base;
+    font-weight: vars.$font-weight-medium;
+    color: vars.$color-text-primary;
+  }
+
+  &__artist {
+    @include mix.text-truncate;
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text-secondary;
+    transition: color vars.$transition-fast;
+
+    &:hover {
+      color: vars.$color-text-primary;
+    }
+  }
+
+  &__album {
+    min-width: 0;
+  }
+
+  &__album-name {
+    @include mix.text-truncate;
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text-secondary;
+  }
+
+  &__genre {
+    min-width: 0;
+  }
+
+  &__genre-badge {
+    display: inline-block;
+    font-size: vars.$font-size-xs;
+    font-weight: vars.$font-weight-medium;
+    color: vars.$color-text-muted;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 2px vars.$space-2;
+    border-radius: vars.$radius-full;
+    @include mix.text-truncate;
+    max-width: 110px;
+  }
+
+  &__duration {
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text-secondary;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  &__actions {
+    @include mix.flex-center;
+  }
+
+  &__spotify-link {
+    @include mix.flex-center;
+    width: 32px;
+    height: 32px;
+    border-radius: vars.$radius-full;
+    color: vars.$color-text-muted;
+    transition: color vars.$transition-fast, background vars.$transition-fast;
+    opacity: 0;
+
+    .track-card:hover & {
+      opacity: 1;
+    }
+
+    mat-icon {
+      font-size: 16px;
+    }
+
+    &:hover {
+      color: vars.$color-brand;
+      background: rgba(29, 185, 84, 0.1);
+    }
+  }
+
+  &__mock-badge {
+    @include mix.flex-center;
+    width: 32px;
+    height: 32px;
+    color: vars.$color-text-muted;
+    opacity: 0;
+
+    .track-card:hover & {
+      opacity: 0.6;
+    }
+
+    mat-icon {
+      font-size: 16px;
+    }
+  }
+}

@@ -1,0 +1,125 @@
+@use 'variables' as vars;
+@use 'mixins' as mix;
+
+.success {
+  min-height: calc(100vh - vars.$navbar-height);
+  @include mix.flex-center;
+
+  @include mix.mobile {
+    min-height: calc(100vh - vars.$navbar-height-mobile);
+  }
+
+  &__container {
+    max-width: 540px;
+    width: 100%;
+    margin: 0 auto;
+    padding: vars.$space-10 vars.$content-padding;
+
+    @include mix.mobile {
+      padding: vars.$space-6 vars.$content-padding-mobile;
+    }
+  }
+
+  &__card {
+    background: vars.$color-bg-card;
+    border: 1px solid vars.$color-border;
+    border-radius: vars.$radius-2xl;
+    padding: vars.$space-12 vars.$space-8;
+    text-align: center;
+    @include mix.flex-column;
+    align-items: center;
+    box-shadow: vars.$shadow-xl;
+    animation: slideUp 400ms ease forwards;
+
+    @include mix.mobile {
+      padding: vars.$space-8 vars.$space-4;
+    }
+  }
+
+  &__icon-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    @include mix.flex-center;
+    margin-bottom: vars.$space-6;
+  }
+
+  &__icon {
+    font-size: 80px;
+    width: 80px;
+    height: 80px;
+    color: vars.$color-brand;
+    position: relative;
+    z-index: 2;
+  }
+
+  &__pulse {
+    position: absolute;
+    inset: 0;
+    background: rgba(29, 185, 84, 0.2);
+    border-radius: vars.$radius-full;
+    z-index: 1;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  &__title {
+    font-size: clamp(vars.$font-size-2xl, 4vw, vars.$font-size-3xl);
+    font-weight: vars.$font-weight-black;
+    color: vars.$color-text-primary;
+    letter-spacing: vars.$letter-spacing-tight;
+    margin-bottom: vars.$space-4;
+  }
+
+  &__message {
+    font-size: vars.$font-size-base;
+    color: vars.$color-text-secondary;
+    line-height: vars.$line-height-relaxed;
+    margin-bottom: vars.$space-8;
+    max-width: 420px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: vars.$space-4;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+
+    a {
+      height: 48px;
+      border-radius: vars.$radius-full;
+      font-family: vars.$font-family;
+      font-weight: vars.$font-weight-bold;
+      font-size: vars.$font-size-base;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: vars.$space-2;
+    }
+
+    @include mix.mobile {
+      flex-direction: column;
+      
+      a {
+        width: 100%;
+      }
+    }
+  }
+
+  &__btn-primary {
+    @include mix.button-primary;
+    padding: 0 vars.$space-8;
+  }
+
+  &__btn-secondary {
+    @include mix.button-secondary;
+    padding: 0 vars.$space-8;
+    border-color: vars.$color-border;
+    color: vars.$color-text-secondary;
+
+    &:hover {
+      border-color: vars.$color-text-primary;
+      color: vars.$color-text-primary;
+    }
+  }
+}

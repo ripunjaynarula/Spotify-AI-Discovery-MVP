@@ -1,0 +1,136 @@
+@use 'variables' as vars;
+@use 'mixins' as mix;
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: vars.$z-sticky;
+  height: vars.$navbar-height;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid vars.$color-border;
+
+  @include mix.mobile {
+    height: vars.$navbar-height-mobile;
+  }
+
+  &__container {
+    @include mix.flex-between;
+    height: 100%;
+    max-width: vars.$content-max-width;
+    margin: 0 auto;
+    padding: 0 vars.$content-padding;
+
+    @include mix.mobile {
+      padding: 0 vars.$content-padding-mobile;
+    }
+  }
+
+  &__brand {
+    @include mix.flex-center;
+    gap: vars.$space-3;
+    text-decoration: none;
+    transition: opacity vars.$transition-fast;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &:focus-visible {
+      @include mix.focus-ring;
+      border-radius: vars.$radius-md;
+    }
+  }
+
+  &__logo {
+    @include mix.flex-center;
+    width: 36px;
+    height: 36px;
+    background: vars.$color-brand;
+    border-radius: vars.$radius-full;
+    color: #000;
+    flex-shrink: 0;
+  }
+
+  &__brand-text {
+    font-size: vars.$font-size-md;
+    font-weight: vars.$font-weight-bold;
+    color: vars.$color-text-primary;
+    letter-spacing: vars.$letter-spacing-tight;
+
+    @include mix.mobile {
+      display: none;
+    }
+  }
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: vars.$space-2;
+  }
+
+  &__nav-link {
+    @include mix.flex-center;
+    gap: vars.$space-2;
+    padding: vars.$space-2 vars.$space-4;
+    border-radius: vars.$radius-full;
+    font-size: vars.$font-size-base;
+    font-weight: vars.$font-weight-medium;
+    color: vars.$color-text-secondary;
+    text-decoration: none;
+    transition: all vars.$transition-fast;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    span {
+      @include mix.mobile {
+        display: none;
+      }
+    }
+
+    &:hover {
+      color: vars.$color-text-primary;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &--active {
+      color: vars.$color-text-primary;
+    }
+
+    &:focus-visible {
+      @include mix.focus-ring;
+    }
+  }
+
+  &__badge {
+    @include mix.flex-center;
+    gap: vars.$space-2;
+    padding: vars.$space-2 vars.$space-4;
+    background: rgba(108, 99, 255, 0.15);
+    border: 1px solid rgba(108, 99, 255, 0.3);
+    border-radius: vars.$radius-full;
+    font-size: vars.$font-size-sm;
+    font-weight: vars.$font-weight-semibold;
+    color: rgba(108, 99, 255, 0.9);
+    letter-spacing: vars.$letter-spacing-wide;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    span {
+      @include mix.mobile {
+        display: none;
+      }
+    }
+  }
+}

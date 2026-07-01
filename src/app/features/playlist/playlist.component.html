@@ -1,0 +1,171 @@
+<div class="playlist page-enter" *ngIf="playlist() as currentPlaylist">
+  <div class="playlist__container">
+    
+    <!-- Header/Hero -->
+    <header class="playlist__header">
+      <div class="playlist__artwork-container" aria-hidden="true">
+        <div class="playlist__artwork-grid">
+          <img 
+            *ngFor="let track of currentPlaylist.tracks.slice(0, 4)" 
+            [src]="track.albumArt" 
+            alt="Album cover" 
+            class="playlist__artwork-img"
+          />
+        </div>
+        <div class="playlist__artwork-badge">
+          <mat-icon>auto_awesome</mat-icon>
+        </div>
+      </div>
+
+      <div class="playlist__header-details">
+        <span class="playlist__overhead">AI CURATED PLAYLIST</span>
+        <h1 class="playlist__title">{{ currentPlaylist.title }}</h1>
+        <p class="playlist__description">{{ currentPlaylist.description }}</p>
+        
+        <div class="playlist__meta">
+          <span class="playlist__meta-item playlist__meta-item--brand">Spotify AI Discovery</span>
+          <span class="playlist__meta-separator">•</span>
+          <span class="playlist__meta-item">{{ currentPlaylist.tracks.length }} songs</span>
+          <span class="playlist__meta-separator">•</span>
+          <span class="playlist__meta-item">{{ getTotalDuration(currentPlaylist) }}</span>
+          <span class="playlist__meta-separator">•</span>
+          <span class="playlist__meta-item">{{ formatDate(currentPlaylist.createdAt) }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Feedback Notice / Warnings -->
+    <section class="playlist__notices" aria-label="Catalog status info">
+      <div class="playlist__notice playlist__notice--info" *ngIf="isUsingFallbackAi()">
+        <mat-icon>info</mat-icon>
+        <span>Running in offline simulation mode. OpenRouter AI configuration was not detected, using simulation logic.</span>
+      </div>
+      <div class="playlist__notice playlist__notice--warning" *ngIf="isUsingMockData()">
+        <mat-icon>warning</mat-icon>
+        <span>Running in offline simulation mode. Spotify Credentials were not detected, showing catalog mockup.</span>
+      </div>
+    </section>
+
+    <!-- Content Split Layout -->
+    <div class="playlist__content">
+      
+      <!-- Tracks List -->
+      <main class="playlist__main" role="main">
+        <div class="playlist__list-header" role="row">
+          <div class="playlist__list-col playlist__list-col--index">#</div>
+          <div class="playlist__list-col playlist__list-col--title">Title</div>
+          <div class="playlist__list-col playlist__list-col--album">Album / Genre</div>
+          <div class="playlist__list-col playlist__list-col--duration">
+            <mat-icon>access_time</mat-icon>
+          </div>
+        </div>
+
+        <div class="playlist__tracks" role="list">
+          <app-track-card
+            *ngFor="let track of currentPlaylist.tracks; let i = index; trackBy: trackByTrackId"
+            [track]="track"
+            [index]="i + 1"
+            role="listitem"
+          ></app-track-card>
+        </div>
+      </main>
+
+      <!-- Sidebar with Explanation & Feedback -->
+      <aside class="playlist__sidebar" aria-label="AI Explanation and Refinement">
+        
+        <!-- Explanation Card -->
+        <div class="playlist__card playlist__card--explanation" *ngIf="showExplanation()">
+          <div class="playlist__card-header">
+            <div class="playlist__card-title-group">
+              <mat-icon class="playlist__card-icon playlist__card-icon--sparkle">auto_awesome</mat-icon>
+              <h2 class="playlist__card-title">Why these songs?</h2>
+            </div>
+            <button 
+              mat-icon-button 
+              (click)="toggleExplanation()" 
+              aria-label="Hide explanation"
+              matTooltip="Hide explanation"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <p class="playlist__explanation-text">
+            {{ currentPlaylist.explanation }}
+          </p>
+        </div>
+
+        <div class="playlist__explanation-toggle-btn" *ngIf="!showExplanation()">
+          <button mat-stroked-button (click)="toggleExplanation()">
+            <mat-icon>visibility</mat-icon>
+            Show AI Explanation
+          </button>
+        </div>
+
+        <!-- Refinement / Feedback Card -->
+        <div class="playlist__card playlist__card--feedback">
+          <h2 class="playlist__card-title playlist__card-title--margin">Refine playlist</h2>
+          <p class="playlist__card-subtitle">
+            Not quite what you were looking for? Teach the AI your preference to recreate this list.
+          </p>
+
+          <div class="playlist__refine-actions" *ngIf="!isRefining()">
+            <div class="playlist__refine-section">
+              <span class="playlist__refine-label">Adjust Recommendations</span>
+              <div class="playlist__refine-row">
+                <button 
+                  *ngFor="let type of feedbackTypes.slice(0, 2)"
+                  class="playlist__btn-refine"
+                  (click)="onFeedback(type.type)"
+                  [matTooltip]="type.description"
+                  matRipple
+                >
+                  <mat-icon>{{ type.icon }}</mat-icon>
+                  <span>{{ type.label }}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="playlist__refine-section">
+              <span class="playlist__refine-label">Re-curate Direction</span>
+              <div class="playlist__refine-col">
+                <button 
+                  *ngFor="let type of feedbackTypes.slice(2)"
+                  class="playlist__btn-refine playlist__btn-refine--full"
+                  (click)="onFeedback(type.type)"
+                  [matTooltip]="type.description"
+                  matRipple
+                >
+                  <mat-icon>{{ type.icon }}</mat-icon>
+                  <span>{{ type.label }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading Refinement -->
+          <div class="playlist__refining-state" *ngIf="isRefining()">
+            <app-skeleton-loader variant="rect" width="100%" height="80px"></app-skeleton-loader>
+            <p class="playlist__refining-label">Re-curating playlist based on your feedback...</p>
+          </div>
+
+          <!-- Refine Error Banner -->
+          <app-error-banner 
+            *ngIf="refineError()" 
+            [message]="refineError()!" 
+            (retry)="onRetryRefine()"
+          ></app-error-banner>
+        </div>
+
+        <!-- Start Over -->
+        <div class="playlist__start-over">
+          <a mat-stroked-button class="playlist__btn-start-over" routerLink="/">
+            <mat-icon>restart_alt</mat-icon>
+            Start Over
+          </a>
+        </div>
+      </aside>
+
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,442 @@
+@use 'variables' as vars;
+@use 'mixins' as mix;
+
+.playlist {
+  padding-bottom: vars.$space-20;
+  background: linear-gradient(180deg, rgba(40, 40, 40, 0.4) 0%, transparent 100%);
+
+  &__container {
+    max-width: vars.$content-max-width;
+    margin: 0 auto;
+    padding: vars.$space-10 vars.$content-padding;
+
+    @include mix.mobile {
+      padding: vars.$space-6 vars.$content-padding-mobile;
+    }
+  }
+
+  // ── Header Hero ────────────────────────────────────────────────────────────
+
+  &__header {
+    display: flex;
+    align-items: flex-end;
+    gap: vars.$space-8;
+    margin-bottom: vars.$space-10;
+
+    @include mix.mobile {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: vars.$space-5;
+    }
+  }
+
+  &__artwork-container {
+    position: relative;
+    width: 232px;
+    height: 232px;
+    border-radius: vars.$radius-lg;
+    overflow: hidden;
+    box-shadow: vars.$shadow-xl;
+    flex-shrink: 0;
+    background: vars.$color-bg-elevated;
+
+    @include mix.mobile {
+      width: 192px;
+      height: 192px;
+    }
+  }
+
+  &__artwork-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    width: 100%;
+    height: 100%;
+  }
+
+  &__artwork-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__artwork-badge {
+    position: absolute;
+    bottom: vars.$space-3;
+    right: vars.$space-3;
+    background: rgba(10, 10, 10, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: vars.$color-brand;
+    width: 36px;
+    height: 36px;
+    border-radius: vars.$radius-full;
+    @include mix.flex-center;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &__header-details {
+    @include mix.flex-column;
+    gap: vars.$space-2;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__overhead {
+    font-size: vars.$font-size-xs;
+    font-weight: vars.$font-weight-black;
+    letter-spacing: vars.$letter-spacing-wider;
+    color: vars.$color-text-primary;
+    text-transform: uppercase;
+  }
+
+  &__title {
+    font-size: clamp(vars.$font-size-3xl, 5vw, vars.$font-size-4xl);
+    font-weight: vars.$font-weight-black;
+    color: vars.$color-text-primary;
+    letter-spacing: vars.$letter-spacing-tight;
+    line-height: vars.$line-height-tight;
+    margin: 0;
+    @include mix.text-clamp(2);
+  }
+
+  &__description {
+    font-size: vars.$font-size-base;
+    color: vars.$color-text-secondary;
+    line-height: vars.$line-height-relaxed;
+    margin-top: vars.$space-1;
+    @include mix.text-clamp(3);
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: vars.$space-2;
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text-secondary;
+    margin-top: vars.$space-2;
+
+    @include mix.mobile {
+      justify-content: center;
+    }
+  }
+
+  &__meta-item {
+    font-weight: vars.$font-weight-medium;
+
+    &--brand {
+      color: vars.$color-text-primary;
+      font-weight: vars.$font-weight-bold;
+    }
+  }
+
+  &__meta-separator {
+    color: vars.$color-text-muted;
+  }
+
+  // ── Notices ────────────────────────────────────────────────────────────────
+
+  &__notices {
+    @include mix.flex-column;
+    gap: vars.$space-3;
+    margin-bottom: vars.$space-8;
+  }
+
+  &__notice {
+    display: flex;
+    align-items: flex-start;
+    gap: vars.$space-3;
+    padding: vars.$space-3 vars.$space-4;
+    border-radius: vars.$radius-md;
+    font-size: vars.$font-size-sm;
+    line-height: vars.$line-height-normal;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    &--info {
+      background: rgba(108, 99, 255, 0.1);
+      border: 1px solid rgba(108, 99, 255, 0.2);
+      color: rgba(160, 155, 255, 1);
+    }
+
+    &--warning {
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.2);
+      color: rgba(251, 191, 36, 0.95);
+    }
+  }
+
+  // ── Content Split Layout ───────────────────────────────────────────────────
+
+  &__content {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: vars.$space-8;
+    align-items: start;
+
+    @media (max-width: 1023px) {
+      grid-template-columns: 1fr;
+      gap: vars.$space-10;
+    }
+  }
+
+  &__main {
+    @include mix.flex-column;
+  }
+
+  &__list-header {
+    display: grid;
+    grid-template-columns: 48px 1fr 1fr 60px;
+    padding: 0 vars.$space-4 vars.$space-3;
+    border-bottom: 1px solid vars.$color-border;
+    font-size: vars.$font-size-xs;
+    font-weight: vars.$font-weight-bold;
+    text-transform: uppercase;
+    letter-spacing: vars.$letter-spacing-wider;
+    color: vars.$color-text-muted;
+
+    @include mix.mobile {
+      grid-template-columns: 32px 1fr 50px;
+      .playlist__list-col--album {
+        display: none;
+      }
+    }
+  }
+
+  &__list-col {
+    display: flex;
+    align-items: center;
+
+    &--index {
+      justify-content: center;
+    }
+
+    &--duration {
+      justify-content: flex-end;
+      padding-right: vars.$space-2;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  &__tracks {
+    @include mix.flex-column;
+    gap: vars.$space-1;
+    margin-top: vars.$space-3;
+  }
+
+  // ── Sidebar Cards ──────────────────────────────────────────────────────────
+
+  &__sidebar {
+    @include mix.flex-column;
+    gap: vars.$space-6;
+  }
+
+  &__card {
+    background: vars.$color-bg-card;
+    border: 1px solid vars.$color-border;
+    border-radius: vars.$radius-xl;
+    padding: vars.$space-6;
+
+    &--explanation {
+      border-color: rgba(108, 99, 255, 0.15);
+      background: linear-gradient(135deg, vars.$color-bg-card 0%, rgba(108, 99, 255, 0.03) 100%);
+    }
+  }
+
+  &__card-header {
+    @include mix.flex-between;
+    margin-bottom: vars.$space-4;
+  }
+
+  &__card-title-group {
+    display: flex;
+    align-items: center;
+    gap: vars.$space-2;
+  }
+
+  &__card-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+
+    &--sparkle {
+      color: rgba(140, 133, 255, 1);
+    }
+  }
+
+  &__card-title {
+    font-size: vars.$font-size-md;
+    font-weight: vars.$font-weight-bold;
+    color: vars.$color-text-primary;
+    letter-spacing: vars.$letter-spacing-tight;
+    margin: 0;
+
+    &--margin {
+      margin-bottom: vars.$space-1;
+    }
+  }
+
+  &__card-subtitle {
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text-secondary;
+    line-height: vars.$line-height-normal;
+    margin-bottom: vars.$space-5;
+  }
+
+  &__explanation-text {
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text-secondary;
+    line-height: vars.$line-height-relaxed;
+  }
+
+  &__explanation-toggle-btn {
+    button {
+      width: 100%;
+      height: 48px;
+      font-family: vars.$font-family;
+      color: vars.$color-text-secondary;
+      border-color: vars.$color-border;
+    }
+  }
+
+  // ── Refine / Feedback Controls ─────────────────────────────────────────────
+
+  &__refine-actions {
+    @include mix.flex-column;
+    gap: vars.$space-5;
+  }
+
+  &__refine-section {
+    @include mix.flex-column;
+    gap: vars.$space-2;
+  }
+
+  &__refine-label {
+    font-size: vars.$font-size-xs;
+    font-weight: vars.$font-weight-bold;
+    color: vars.$color-text-muted;
+    text-transform: uppercase;
+    letter-spacing: vars.$letter-spacing-wider;
+  }
+
+  &__refine-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: vars.$space-2;
+  }
+
+  &__refine-col {
+    @include mix.flex-column;
+    gap: vars.$space-2;
+  }
+
+  &__btn-refine {
+    @include mix.flex-center;
+    gap: vars.$space-2;
+    padding: vars.$space-3;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid vars.$color-border;
+    border-radius: vars.$radius-md;
+    font-size: vars.$font-size-sm;
+    font-weight: vars.$font-weight-medium;
+    color: vars.$color-text-secondary;
+    cursor: pointer;
+    font-family: vars.$font-family;
+    transition: all vars.$transition-fast;
+    overflow: hidden;
+    position: relative;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: vars.$color-text-primary;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: vars.$color-text-secondary;
+      color: vars.$color-text-primary;
+    }
+
+    &:focus-visible {
+      @include mix.focus-ring;
+    }
+
+    &--full {
+      width: 100%;
+      justify-content: flex-start;
+      padding-left: vars.$space-4;
+    }
+  }
+
+  &__refining-state {
+    @include mix.flex-column;
+    align-items: center;
+    gap: vars.$space-3;
+    text-align: center;
+    padding: vars.$space-4 0;
+  }
+
+  &__refining-label {
+    font-size: vars.$font-size-sm;
+    color: vars.$color-text-secondary;
+  }
+
+  // ── Start Over / Bottom Buttons ────────────────────────────────────────────
+
+  &__start-over {
+    margin-top: vars.$space-2;
+  }
+
+  &__btn-start-over {
+    width: 100%;
+    height: 48px;
+    border-radius: vars.$radius-full;
+    font-family: vars.$font-family;
+    color: vars.$color-text-secondary;
+    border-color: vars.$color-border;
+    transition: all vars.$transition-fast;
+
+    &:hover {
+      border-color: vars.$color-text-primary;
+      color: vars.$color-text-primary;
+      background: rgba(255,255,255,0.03);
+    }
+  }
+}
+
+// SnackBar style configuration
+::ng-deep .feedback-snackbar {
+  background-color: vars.$color-bg-elevated !important;
+  color: vars.$color-text-primary !important;
+  border: 1px solid vars.$color-border;
+  border-radius: vars.$radius-md;
+  box-shadow: vars.$shadow-lg;
+  
+  .mdc-snackbar__label {
+    font-family: vars.$font-family;
+    font-weight: vars.$font-weight-medium;
+  }
+
+  .mat-mdc-snack-bar-action button {
+    color: vars.$color-brand !important;
+  }
+}

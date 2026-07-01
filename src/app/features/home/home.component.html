@@ -1,0 +1,166 @@
+<div class="home page-enter">
+
+  <!-- Hero Greeting -->
+  <section class="home__hero" aria-labelledby="greeting-heading">
+    <div class="home__container">
+      <h1 id="greeting-heading" class="home__greeting">{{ greetingText }}</h1>
+      <p class="home__subtitle">What do you want to hear right now?</p>
+    </div>
+  </section>
+
+  <!-- Recently Played -->
+  <section class="home__section" aria-labelledby="recently-played-heading">
+    <div class="home__container">
+      <div class="home__section-header">
+        <h2 id="recently-played-heading" class="home__section-title">Recently Played</h2>
+      </div>
+
+      <div class="home__grid home__grid--wide" role="list" aria-label="Recently played music">
+        <!-- Skeleton loaders -->
+        <ng-container *ngIf="isLoading()">
+          <div *ngFor="let i of [1,2,3,4,5,6]" class="home__media-card home__media-card--skeleton" role="listitem" aria-hidden="true">
+            <app-skeleton-loader variant="rect" width="100%" height="100%"></app-skeleton-loader>
+            <div class="home__media-card-skeleton-text">
+              <app-skeleton-loader variant="text" width="80%" height="14px"></app-skeleton-loader>
+              <app-skeleton-loader variant="text" width="60%" height="12px"></app-skeleton-loader>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Real data -->
+        <ng-container *ngIf="!isLoading()">
+          <button
+            *ngFor="let item of recentlyPlayed(); trackBy: trackByItemId"
+            class="home__media-card"
+            [attr.aria-label]="item.title + ' by ' + item.artist + ', ' + item.type"
+            role="listitem"
+            matRipple
+            matRippleColor="rgba(255,255,255,0.05)"
+          >
+            <div class="home__media-card-art-wrapper">
+              <img
+                [src]="item.albumArt"
+                [alt]="item.title + ' artwork'"
+                class="home__media-card-art"
+                loading="lazy"
+              />
+              <div class="home__media-card-overlay" aria-hidden="true">
+                <mat-icon>play_arrow</mat-icon>
+              </div>
+            </div>
+            <div class="home__media-card-info">
+              <p class="home__media-card-title">{{ item.title }}</p>
+              <p class="home__media-card-subtitle">{{ item.artist }}</p>
+            </div>
+          </button>
+        </ng-container>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recommended -->
+  <section class="home__section" aria-labelledby="recommended-heading">
+    <div class="home__container">
+      <div class="home__section-header">
+        <h2 id="recommended-heading" class="home__section-title">Recommended For You</h2>
+        <span class="home__section-badge">Based on history</span>
+      </div>
+
+      <div class="home__scroll-container" role="list" aria-label="Recommended music">
+        <!-- Skeleton loaders -->
+        <ng-container *ngIf="isLoading()">
+          <div *ngFor="let i of [1,2,3,4,5]" class="home__rec-card home__rec-card--skeleton" role="listitem" aria-hidden="true">
+            <app-skeleton-loader variant="rect" width="100%" height="160px"></app-skeleton-loader>
+            <div class="home__rec-skeleton-text">
+              <app-skeleton-loader variant="text" width="75%" height="14px"></app-skeleton-loader>
+              <app-skeleton-loader variant="text" width="55%" height="12px"></app-skeleton-loader>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Real data -->
+        <ng-container *ngIf="!isLoading()">
+          <button
+            *ngFor="let item of recommended(); trackBy: trackByItemId"
+            class="home__rec-card"
+            [attr.aria-label]="item.title + ' by ' + item.artist + '. ' + item.reason"
+            role="listitem"
+            matRipple
+            matRippleColor="rgba(255,255,255,0.05)"
+          >
+            <div class="home__rec-card-art-wrapper">
+              <img
+                [src]="item.albumArt"
+                [alt]="item.title + ' artwork'"
+                class="home__rec-card-art"
+                loading="lazy"
+              />
+              <div class="home__rec-card-overlay" aria-hidden="true">
+                <mat-icon>play_arrow</mat-icon>
+              </div>
+            </div>
+            <div class="home__rec-card-info">
+              <p class="home__rec-card-title">{{ item.title }}</p>
+              <p class="home__rec-card-artist">{{ item.artist }}</p>
+              <p class="home__rec-card-reason">{{ item.reason }}</p>
+            </div>
+          </button>
+        </ng-container>
+      </div>
+    </div>
+  </section>
+
+  <!-- Discover Your Way — FEATURE SECTION -->
+  <section class="home__section home__section--feature" aria-labelledby="discover-heading">
+    <div class="home__container">
+      <div class="home__section-header">
+        <div class="home__feature-header">
+          <div class="home__feature-badge" aria-label="AI-powered feature">
+            <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+            <span>New Feature</span>
+          </div>
+          <h2 id="discover-heading" class="home__section-title home__section-title--feature">
+            Discover Your Way
+          </h2>
+          <p class="home__feature-description">
+            Tell AI what you want to hear right now. Get a curated playlist from the Spotify catalog in seconds — no more hoping the algorithm understands you.
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="home__discovery-grid"
+        role="list"
+        aria-label="Discovery modes. Choose a mode to start discovering music."
+      >
+        <button
+          *ngFor="let mode of discoveryModes; trackBy: trackByModeId; let i = index"
+          class="home__discovery-card"
+          [class]="'home__discovery-card--' + mode.id"
+          [style]="'animation-delay: ' + (i * 80) + 'ms'"
+          [attr.aria-label]="mode.title + ': ' + mode.description + '. Click to start discovery flow.'"
+          role="listitem"
+          (click)="onDiscoveryCardClick(mode)"
+          (keydown.enter)="onDiscoveryCardClick(mode)"
+          (keydown.space)="onDiscoveryCardClick(mode)"
+          matRipple
+          matRippleColor="rgba(255,255,255,0.08)"
+        >
+          <div class="home__discovery-card-bg" [style.background]="mode.gradient" aria-hidden="true"></div>
+          <div class="home__discovery-card-content">
+            <div class="home__discovery-card-icon" aria-hidden="true">
+              <mat-icon>{{ mode.icon }}</mat-icon>
+            </div>
+            <h3 class="home__discovery-card-title">{{ mode.title }}</h3>
+            <p class="home__discovery-card-description">{{ mode.description }}</p>
+            <div class="home__discovery-card-cta" aria-hidden="true">
+              <span>Start discovery</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div>
