@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "ng": "ng",
+    "prebuild": "node set-env.js",
     "start": "ng serve --configuration development",
     "start:prod": "ng serve --configuration production",
     "build": "ng build",

@@ -1,0 +1,52 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Netlify configuration for Spotify AI Discovery
+# Docs: https://docs.netlify.com/configure-builds/file-based-configuration/
+# ─────────────────────────────────────────────────────────────────────────────
+
+[build]
+  # Runs set-env.js first to inject env vars into Angular environment files,
+  # then builds the production Angular bundle.
+  command = "npm run build:ci"
+
+  # Angular 17 outputs to dist/<project-name>/browser
+  publish = "dist/spotify-ai-discovery/browser"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SPA routing — send all routes to index.html so Angular Router works
+# ─────────────────────────────────────────────────────────────────────────────
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Security headers
+# ─────────────────────────────────────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "camera=(), microphone=(), geolocation=()"
+
+# Cache immutable hashed assets forever; revalidate HTML on every request
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
