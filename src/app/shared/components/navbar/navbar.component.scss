@@ -104,6 +104,25 @@
       color: vars.$color-text-primary;
     }
 
+    &--discover {
+      color: vars.$color-brand;
+      background: rgba(29, 185, 84, 0.08);
+      border: 1px solid rgba(29, 185, 84, 0.2);
+
+      &:hover {
+        color: vars.$color-brand;
+        background: rgba(29, 185, 84, 0.15);
+        border-color: rgba(29, 185, 84, 0.35);
+        box-shadow: 0 0 12px rgba(29, 185, 84, 0.15);
+      }
+
+      &.navbar__nav-link--active {
+        color: vars.$color-brand;
+        background: rgba(29, 185, 84, 0.15);
+        border-color: rgba(29, 185, 84, 0.35);
+      }
+    }
+
     &:focus-visible {
       @include mix.focus-ring;
     }

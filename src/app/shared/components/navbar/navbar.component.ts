@@ -39,6 +39,15 @@ import { toSignal } from '@angular/core/rxjs-interop';
             <mat-icon aria-hidden="true">home</mat-icon>
             <span>Home</span>
           </a>
+          <a
+            routerLink="/discover"
+            routerLinkActive="navbar__nav-link--active"
+            class="navbar__nav-link navbar__nav-link--discover"
+            aria-label="AI Discover"
+          >
+            <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+            <span>Discover</span>
+          </a>
         </nav>
 
         <div class="navbar__badge" aria-label="AI-powered feature">

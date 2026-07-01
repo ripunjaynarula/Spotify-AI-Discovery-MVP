@@ -8,6 +8,59 @@
     </div>
   </section>
 
+  <!-- Discover Your Way — PRIMARY FEATURE (shown immediately after hero) -->
+  <section class="home__section home__section--feature" aria-labelledby="discover-heading">
+    <div class="home__container">
+      <div class="home__section-header">
+        <div class="home__feature-header">
+          <div class="home__feature-badge" aria-label="AI-powered feature">
+            <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+            <span>New Feature</span>
+          </div>
+          <h2 id="discover-heading" class="home__section-title home__section-title--feature">
+            Discover Your Way
+          </h2>
+          <p class="home__feature-description">
+            Tell AI what you want to hear right now. Get a curated playlist from the Spotify catalog in seconds — no more hoping the algorithm understands you.
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="home__discovery-grid"
+        role="list"
+        aria-label="Discovery modes. Choose a mode to start discovering music."
+      >
+        <button
+          *ngFor="let mode of discoveryModes; trackBy: trackByModeId; let i = index"
+          class="home__discovery-card"
+          [class]="'home__discovery-card--' + mode.id"
+          [style]="'animation-delay: ' + (i * 80) + 'ms'"
+          [attr.aria-label]="mode.title + ': ' + mode.description + '. Click to start discovery flow.'"
+          role="listitem"
+          (click)="onDiscoveryCardClick(mode)"
+          (keydown.enter)="onDiscoveryCardClick(mode)"
+          (keydown.space)="onDiscoveryCardClick(mode)"
+          matRipple
+          matRippleColor="rgba(255,255,255,0.08)"
+        >
+          <div class="home__discovery-card-bg" [style.background]="mode.gradient" aria-hidden="true"></div>
+          <div class="home__discovery-card-content">
+            <div class="home__discovery-card-icon" aria-hidden="true">
+              <mat-icon>{{ mode.icon }}</mat-icon>
+            </div>
+            <h3 class="home__discovery-card-title">{{ mode.title }}</h3>
+            <p class="home__discovery-card-description">{{ mode.description }}</p>
+            <div class="home__discovery-card-cta" aria-hidden="true">
+              <span>Start discovery</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- Recently Played -->
   <section class="home__section" aria-labelledby="recently-played-heading">
     <div class="home__container">
@@ -106,59 +159,6 @@
             </div>
           </button>
         </ng-container>
-      </div>
-    </div>
-  </section>
-
-  <!-- Discover Your Way — FEATURE SECTION -->
-  <section class="home__section home__section--feature" aria-labelledby="discover-heading">
-    <div class="home__container">
-      <div class="home__section-header">
-        <div class="home__feature-header">
-          <div class="home__feature-badge" aria-label="AI-powered feature">
-            <mat-icon aria-hidden="true">auto_awesome</mat-icon>
-            <span>New Feature</span>
-          </div>
-          <h2 id="discover-heading" class="home__section-title home__section-title--feature">
-            Discover Your Way
-          </h2>
-          <p class="home__feature-description">
-            Tell AI what you want to hear right now. Get a curated playlist from the Spotify catalog in seconds — no more hoping the algorithm understands you.
-          </p>
-        </div>
-      </div>
-
-      <div
-        class="home__discovery-grid"
-        role="list"
-        aria-label="Discovery modes. Choose a mode to start discovering music."
-      >
-        <button
-          *ngFor="let mode of discoveryModes; trackBy: trackByModeId; let i = index"
-          class="home__discovery-card"
-          [class]="'home__discovery-card--' + mode.id"
-          [style]="'animation-delay: ' + (i * 80) + 'ms'"
-          [attr.aria-label]="mode.title + ': ' + mode.description + '. Click to start discovery flow.'"
-          role="listitem"
-          (click)="onDiscoveryCardClick(mode)"
-          (keydown.enter)="onDiscoveryCardClick(mode)"
-          (keydown.space)="onDiscoveryCardClick(mode)"
-          matRipple
-          matRippleColor="rgba(255,255,255,0.08)"
-        >
-          <div class="home__discovery-card-bg" [style.background]="mode.gradient" aria-hidden="true"></div>
-          <div class="home__discovery-card-content">
-            <div class="home__discovery-card-icon" aria-hidden="true">
-              <mat-icon>{{ mode.icon }}</mat-icon>
-            </div>
-            <h3 class="home__discovery-card-title">{{ mode.title }}</h3>
-            <p class="home__discovery-card-description">{{ mode.description }}</p>
-            <div class="home__discovery-card-cta" aria-hidden="true">
-              <span>Start discovery</span>
-              <mat-icon>arrow_forward</mat-icon>
-            </div>
-          </div>
-        </button>
       </div>
     </div>
   </section>
