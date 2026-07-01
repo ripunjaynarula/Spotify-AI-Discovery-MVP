@@ -147,20 +147,40 @@ npm run build
 
 ## Deployment
 
-This app runs entirely in the browser (single-page application) and can be deployed directly to static hosts.
+This app is a client-side SPA configured for Netlify. A `netlify.toml` at the project root handles the full build and routing configuration automatically.
 
-### Vercel Deployment
-Deploy using the Vercel CLI from your project root:
-```bash
-vercel
-```
+### Netlify (recommended)
 
-### Netlify Deployment
-Link your repository to Netlify, choosing the following build configuration:
-- **Build Command**: `npm run build`
-- **Publish Directory**: `dist/spotify-ai-discovery/browser`
+**Step 1 — Connect your repository**
 
----
+1. Push this repository to GitHub.
+2. Go to [app.netlify.com](https://app.netlify.com) and click **Add new site → Import an existing project**.
+3. Select your GitHub repository.
+
+**Step 2 — Build settings** (auto-detected from `netlify.toml`)
+
+| Setting | Value |
+|---|---|
+| Build command | `npm run build:ci` |
+| Publish directory | `dist/spotify-ai-discovery/browser` |
+
+**Step 3 — Environment variables**
+
+In Netlify → **Site configuration → Environment variables**, add:
+
+| Key | Where to get it |
+|---|---|
+| `OPENROUTER_API_KEY` | [openrouter.ai/keys](https://openrouter.ai/keys) |
+| `SPOTIFY_CLIENT_ID` | [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) |
+| `SPOTIFY_CLIENT_SECRET` | [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) |
+
+**Step 4 — Deploy**
+
+Click **Deploy site**. Netlify runs `node set-env.js` first (which injects the env vars into the Angular environment files) and then builds the production bundle. No secrets ever touch git.
+
+> If credentials are missing, the app automatically falls back to the mock catalog so it never shows a blank page.
+
+
 
 ## Assumptions & Limitations
 
