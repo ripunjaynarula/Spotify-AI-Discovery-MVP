@@ -40,7 +40,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
             <span>Home</span>
           </a>
           <a
-            routerLink="/discover"
+            routerLink="/discovery/surprise-me"
             routerLinkActive="navbar__nav-link--active"
             class="navbar__nav-link navbar__nav-link--discover"
             aria-label="AI Discover"

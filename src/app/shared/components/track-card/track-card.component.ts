@@ -17,7 +17,7 @@ import { Track } from '../../../models';
       role="listitem"
     >
       <div class="track-card__index" aria-hidden="true">
-        <span class="track-card__number" [class.hidden]="isPlaying">{{ index + 1 }}</span>
+        <span class="track-card__number" [class.hidden]="isPlaying">{{ index }}</span>
         <mat-icon class="track-card__playing-icon" [class.visible]="isPlaying" aria-hidden="true">
           equalizer
         </mat-icon>
