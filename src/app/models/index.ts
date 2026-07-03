@@ -26,12 +26,9 @@ export interface AiSearchParams {
   genres: string[];
   mood: string;
   tempo: string;
-  energy?: string;
-  activity?: string;
   artistPreferences: string[];
   excludedGenres: string[];
   searchKeywords: string[];
-  discoveryLevel?: string;
   recommendationExplanation: string;
   refinementSuggestions: string[];
 }
@@ -47,7 +44,6 @@ export interface Track {
   previewUrl: string | null;
   spotifyUrl: string;
   isLocal?: boolean;
-  popularity?: number;
 }
 
 export interface GeneratedPlaylist {
@@ -71,7 +67,7 @@ export interface RecentlyPlayedItem {
   title: string;
   artist: string;
   albumArt: string;
-  type: 'album' | 'playlist' | 'artist' | 'track';
+  type: 'album' | 'playlist' | 'artist';
 }
 
 export interface RecommendedItem {

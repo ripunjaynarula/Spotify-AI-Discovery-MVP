@@ -31,33 +31,20 @@
           <span class="playlist__meta-separator">•</span>
           <span class="playlist__meta-item">{{ formatDate(currentPlaylist.createdAt) }}</span>
         </div>
-        
-        <div class="playlist__actions" *ngIf="isLoggedIn">
-          <button 
-            *ngIf="!savedPlaylistUrl()"
-            mat-raised-button 
-            class="playlist__btn-save" 
-            [disabled]="isSaving()"
-            (click)="saveToSpotify()"
-          >
-            <mat-icon>{{ isSaving() ? 'hourglass_empty' : 'favorite_border' }}</mat-icon>
-            {{ isSaving() ? 'Saving...' : 'Save to Spotify' }}
-          </button>
-          
-          <button 
-            *ngIf="savedPlaylistUrl()"
-            mat-raised-button 
-            class="playlist__btn-open" 
-            (click)="openSpotify()"
-          >
-            <mat-icon>open_in_new</mat-icon>
-            Open in Spotify
-          </button>
-        </div>
       </div>
     </header>
 
-
+    <!-- Feedback Notice / Warnings -->
+    <section class="playlist__notices" aria-label="Catalog status info">
+      <div class="playlist__notice playlist__notice--info" *ngIf="isUsingFallbackAi()">
+        <mat-icon>info</mat-icon>
+        <span>Running in offline simulation mode. OpenRouter AI configuration was not detected, using simulation logic.</span>
+      </div>
+      <div class="playlist__notice playlist__notice--warning" *ngIf="isUsingMockData()">
+        <mat-icon>warning</mat-icon>
+        <span>Running in offline simulation mode. Spotify Credentials were not detected, showing catalog mockup.</span>
+      </div>
+    </section>
 
     <!-- Content Split Layout -->
     <div class="playlist__content">
@@ -121,22 +108,13 @@
             Not quite what you were looking for? Teach the AI your preference to recreate this list.
           </p>
 
-          <div class="playlist__refine-actions">
-            <!-- Loading Refinement -->
-            <div class="playlist__refining-state" *ngIf="isRefining()">
-              <div class="playlist__progress-bar">
-                <div class="playlist__progress-bar-fill"></div>
-              </div>
-              <p class="playlist__refining-label">AI is rebuilding your playlist...</p>
-            </div>
-
-            <div class="playlist__refine-section" [class.playlist__refine-section--disabled]="isRefining()">
+          <div class="playlist__refine-actions" *ngIf="!isRefining()">
+            <div class="playlist__refine-section">
               <span class="playlist__refine-label">Adjust Recommendations</span>
               <div class="playlist__refine-row">
                 <button 
                   *ngFor="let type of feedbackTypes.slice(0, 2)"
                   class="playlist__btn-refine"
-                  [disabled]="isRefining()"
                   (click)="onFeedback(type.type)"
                   [matTooltip]="type.description"
                   matRipple
@@ -147,13 +125,12 @@
               </div>
             </div>
 
-            <div class="playlist__refine-section" [class.playlist__refine-section--disabled]="isRefining()">
+            <div class="playlist__refine-section">
               <span class="playlist__refine-label">Re-curate Direction</span>
               <div class="playlist__refine-col">
                 <button 
                   *ngFor="let type of feedbackTypes.slice(2)"
                   class="playlist__btn-refine playlist__btn-refine--full"
-                  [disabled]="isRefining()"
                   (click)="onFeedback(type.type)"
                   [matTooltip]="type.description"
                   matRipple
@@ -163,6 +140,12 @@
                 </button>
               </div>
             </div>
+          </div>
+
+          <!-- Loading Refinement -->
+          <div class="playlist__refining-state" *ngIf="isRefining()">
+            <app-skeleton-loader variant="rect" width="100%" height="80px"></app-skeleton-loader>
+            <p class="playlist__refining-label">Re-curating playlist based on your feedback...</p>
           </div>
 
           <!-- Refine Error Banner -->

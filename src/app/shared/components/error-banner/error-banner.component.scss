@@ -3,15 +3,11 @@
 
 .error-banner {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
   gap: vars.$space-4;
-  padding: vars.$space-5;
+  padding: vars.$space-6;
   background: rgba(244, 67, 54, 0.08);
   border: 1px solid rgba(244, 67, 54, 0.2);
   border-radius: vars.$radius-lg;
-  width: 100%;
-  box-sizing: border-box;
 
   @include mix.mobile {
     flex-direction: column;
@@ -40,24 +36,22 @@
 
     .error-banner__actions {
       justify-content: center;
-      width: auto;
     }
   }
 
   &__icon-wrapper {
     @include mix.flex-center;
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
     border-radius: vars.$radius-full;
     background: rgba(244, 67, 54, 0.15);
-    align-self: flex-start;
 
     mat-icon {
       color: vars.$color-error;
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
     }
   }
 
@@ -65,24 +59,19 @@
     @include mix.flex-column;
     gap: vars.$space-1;
     flex: 1;
-    min-width: 200px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-word;
+    min-width: 0;
   }
 
   &__title {
     font-size: vars.$font-size-md;
     font-weight: vars.$font-weight-semibold;
     color: vars.$color-text-primary;
-    margin: 0;
   }
 
   &__message {
-    font-size: vars.$font-size-sm;
+    font-size: vars.$font-size-base;
     color: vars.$color-text-secondary;
     line-height: vars.$line-height-relaxed;
-    margin: 0;
   }
 
   &__actions {
@@ -90,15 +79,13 @@
     gap: vars.$space-3;
     align-items: center;
     flex-wrap: wrap;
-    margin-top: vars.$space-1;
-    width: 100%;
+    margin-top: vars.$space-2;
   }
 
   &__action {
     font-size: vars.$font-size-sm !important;
     color: vars.$color-text-secondary !important;
     border-color: vars.$color-border-light !important;
-    height: 36px !important;
 
     mat-icon {
       font-size: 16px;

@@ -141,58 +141,6 @@
     color: vars.$color-text-muted;
   }
 
-  &__actions {
-    display: flex;
-    gap: vars.$space-3;
-    margin-top: vars.$space-6;
-    flex-wrap: wrap;
-
-    @include mix.mobile {
-      justify-content: center;
-    }
-  }
-
-  &__btn-save {
-    background-color: vars.$color-brand !important;
-    color: #000 !important;
-    font-weight: vars.$font-weight-bold !important;
-    border-radius: vars.$radius-full !important;
-    padding: 0 vars.$space-6 !important;
-    height: 48px !important;
-    font-size: vars.$font-size-base !important;
-    transition: transform vars.$transition-fast, filter vars.$transition-fast !important;
-
-    &:hover:not(:disabled) {
-      transform: scale(1.04);
-      filter: brightness(1.1);
-    }
-    
-    mat-icon {
-      margin-right: vars.$space-2;
-    }
-  }
-
-  &__btn-open {
-    background-color: transparent !important;
-    color: vars.$color-text-primary !important;
-    border: 1px solid vars.$color-border !important;
-    font-weight: vars.$font-weight-bold !important;
-    border-radius: vars.$radius-full !important;
-    padding: 0 vars.$space-6 !important;
-    height: 48px !important;
-    font-size: vars.$font-size-base !important;
-    transition: transform vars.$transition-fast, background vars.$transition-fast !important;
-
-    &:hover {
-      background-color: rgba(255,255,255,0.1) !important;
-      border-color: vars.$color-text-secondary !important;
-    }
-    
-    mat-icon {
-      margin-right: vars.$space-2;
-    }
-  }
-
   // ── Notices ────────────────────────────────────────────────────────────────
 
   &__notices {
@@ -437,12 +385,6 @@
       justify-content: flex-start;
       padding-left: vars.$space-4;
     }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
   }
 
   &__refining-state {
@@ -450,56 +392,12 @@
     align-items: center;
     gap: vars.$space-3;
     text-align: center;
-    padding: vars.$space-2 0 vars.$space-4 0;
-    width: 100%;
+    padding: vars.$space-4 0;
   }
 
   &__refining-label {
     font-size: vars.$font-size-sm;
-    font-weight: vars.$font-weight-semibold;
-    color: vars.$color-brand;
-    margin: 0;
-  }
-
-  &__progress-bar {
-    width: 100%;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: vars.$radius-full;
-    overflow: hidden;
-    position: relative;
-  }
-
-  &__progress-bar-fill {
-    height: 100%;
-    background: vars.$color-brand;
-    width: 30%;
-    border-radius: vars.$radius-full;
-    position: absolute;
-    animation: rebuild-progress 1.5s infinite ease-in-out;
-  }
-
-  &__refine-section {
-    transition: opacity vars.$transition-fast;
-
-    &--disabled {
-      opacity: 0.5;
-      pointer-events: none;
-    }
-  }
-
-  @keyframes rebuild-progress {
-    0% {
-      left: -30%;
-      width: 30%;
-    }
-    50% {
-      width: 60%;
-    }
-    100% {
-      left: 100%;
-      width: 30%;
-    }
+    color: vars.$color-text-secondary;
   }
 
   // ── Start Over / Bottom Buttons ────────────────────────────────────────────

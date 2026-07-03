@@ -23,11 +23,9 @@
     max-width: vars.$content-max-width;
     margin: 0 auto;
     padding: 0 vars.$content-padding;
-    gap: vars.$space-4;
 
     @include mix.mobile {
       padding: 0 vars.$content-padding-mobile;
-      gap: vars.$space-2;
     }
   }
 
@@ -36,7 +34,6 @@
     gap: vars.$space-3;
     text-decoration: none;
     transition: opacity vars.$transition-fast;
-    flex-shrink: 0;
 
     &:hover {
       opacity: 0.8;
@@ -50,17 +47,12 @@
 
   &__logo {
     @include mix.flex-center;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     background: vars.$color-brand;
     border-radius: vars.$radius-full;
     color: #000;
     flex-shrink: 0;
-
-    svg {
-      width: 18px;
-      height: 18px;
-    }
   }
 
   &__brand-text {
@@ -68,7 +60,6 @@
     font-weight: vars.$font-weight-bold;
     color: vars.$color-text-primary;
     letter-spacing: vars.$letter-spacing-tight;
-    white-space: nowrap;
 
     @include mix.mobile {
       display: none;
@@ -79,7 +70,6 @@
     display: flex;
     align-items: center;
     gap: vars.$space-2;
-    flex: 1;
   }
 
   &__nav-link {
@@ -92,7 +82,6 @@
     color: vars.$color-text-secondary;
     text-decoration: none;
     transition: all vars.$transition-fast;
-    white-space: nowrap;
 
     mat-icon {
       font-size: 20px;
@@ -115,94 +104,52 @@
       color: vars.$color-text-primary;
     }
 
+    &--discover {
+      color: vars.$color-brand;
+      background: rgba(29, 185, 84, 0.08);
+      border: 1px solid rgba(29, 185, 84, 0.2);
+
+      &:hover {
+        color: vars.$color-brand;
+        background: rgba(29, 185, 84, 0.15);
+        border-color: rgba(29, 185, 84, 0.35);
+        box-shadow: 0 0 12px rgba(29, 185, 84, 0.15);
+      }
+
+      &.navbar__nav-link--active {
+        color: vars.$color-brand;
+        background: rgba(29, 185, 84, 0.15);
+        border-color: rgba(29, 185, 84, 0.35);
+      }
+    }
+
     &:focus-visible {
       @include mix.focus-ring;
     }
   }
 
-  &__actions {
-    display: flex;
-    align-items: center;
+  &__badge {
+    @include mix.flex-center;
     gap: vars.$space-2;
-    flex-shrink: 0;
-  }
+    padding: vars.$space-2 vars.$space-4;
+    background: rgba(108, 99, 255, 0.15);
+    border: 1px solid rgba(108, 99, 255, 0.3);
+    border-radius: vars.$radius-full;
+    font-size: vars.$font-size-sm;
+    font-weight: vars.$font-weight-semibold;
+    color: rgba(108, 99, 255, 0.9);
+    letter-spacing: vars.$letter-spacing-wide;
 
-  &__login-btn {
-    background-color: vars.$color-brand !important;
-    color: #000 !important;
-    font-weight: vars.$font-weight-bold !important;
-    border-radius: vars.$radius-full !important;
-    padding: 0 vars.$space-5 !important;
-    height: 36px !important;
-    font-size: vars.$font-size-sm !important;
-    white-space: nowrap;
-
-    @include mix.mobile {
-      padding: 0 vars.$space-3 !important;
-      font-size: vars.$font-size-xs !important;
-    }
-  }
-
-  &__profile-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 3px 8px 3px 3px !important;
-    background: rgba(0, 0, 0, 0.5) !important;
-    border-radius: 50px !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    transition: background vars.$transition-fast, border-color vars.$transition-fast !important;
-    height: 36px !important;
-    min-width: 0 !important;
-    cursor: pointer;
-    box-sizing: border-box;
-
-    @include mix.mobile {
-      padding: 3px !important;
-      gap: 0 !important;
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
     }
 
-    &:hover {
-      background: rgba(60, 60, 60, 0.85) !important;
-      border-color: rgba(255, 255, 255, 0.25) !important;
-    }
-  }
-
-  &__avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    overflow: hidden;
-    display: block;
-
-    &--initials {
-      @include mix.flex-center;
-      background: #535353;
-      color: vars.$color-text-primary;
-      font-weight: vars.$font-weight-bold;
-      font-size: 11px;
-      letter-spacing: 0;
-    }
-  }
-
-  &__chevron {
-    font-size: 18px !important;
-    width: 18px !important;
-    height: 18px !important;
-    color: vars.$color-text-secondary;
-    transition: transform 200ms ease;
-    flex-shrink: 0;
-    display: block !important;
-
-    &--open {
-      transform: rotate(180deg);
-    }
-
-    @include mix.mobile {
-      display: none !important;
+    span {
+      @include mix.mobile {
+        display: none;
+      }
     }
   }
 }

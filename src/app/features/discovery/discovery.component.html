@@ -121,7 +121,6 @@
               matInput
               [value]="customInputValue()"
               (input)="onCustomInput($any($event.target).value)"
-              (focus)="onCustomInputFocus()"
               [attr.aria-label]="'Custom answer for: ' + question.text"
               maxlength="100"
               placeholder="Type a custom answer"

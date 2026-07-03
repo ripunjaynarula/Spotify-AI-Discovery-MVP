@@ -24,7 +24,7 @@ export class PlaylistGeneratorService {
 
     return this.aiService.generateSearchParams(intent).pipe(
       switchMap((aiParams) =>
-        this.spotifyService.searchTracks(aiParams, 20).pipe(
+        this.spotifyService.searchTracks(aiParams, 10).pipe(
           map((tracks) => {
             const playlist: GeneratedPlaylist = {
               title: aiParams.playlistTitle,
@@ -59,9 +59,9 @@ export class PlaylistGeneratorService {
     this.isGenerating.set(true);
     this.generationError.set(null);
 
-    return this.aiService.refineSearchParams(current, feedbackType).pipe(
+    return this.aiService.refineSearchParams(current.aiParams, feedbackType).pipe(
       switchMap((refinedParams) =>
-        this.spotifyService.searchTracks(refinedParams, 20).pipe(
+        this.spotifyService.searchTracks(refinedParams, 10).pipe(
           map((tracks) => {
             const playlist: GeneratedPlaylist = {
               title: refinedParams.playlistTitle,

@@ -1,19 +1,19 @@
-import { Component, computed, OnInit, signal, HostListener } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, RouterOutlet } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatDividerModule } from '@angular/material/divider';
-import { SpotifyAuthService } from '../../../core/services/spotify-auth.service';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter, map } from 'rxjs/operators';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatIconModule, MatButtonModule, MatTooltipModule, MatMenuModule, MatDividerModule],
+  imports: [CommonModule, RouterModule, MatIconModule, MatButtonModule, MatTooltipModule],
   template: `
-    <header class="navbar" role="banner" [class.navbar--scrolled]="isScrolled()">
+    <header class="navbar" role="banner">
       <div class="navbar__container">
         <a
           routerLink="/"
@@ -39,89 +39,24 @@ import { SpotifyAuthService } from '../../../core/services/spotify-auth.service'
             <mat-icon aria-hidden="true">home</mat-icon>
             <span>Home</span>
           </a>
+          <a
+            routerLink="/discovery/surprise-me"
+            routerLinkActive="navbar__nav-link--active"
+            class="navbar__nav-link navbar__nav-link--discover"
+            aria-label="AI Discover"
+          >
+            <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+            <span>Discover</span>
+          </a>
         </nav>
 
-        <div class="navbar__actions">
-          <ng-container *ngIf="!auth.isAuthenticated()">
-            <button mat-raised-button class="navbar__login-btn" (click)="login()">
-              Connect Spotify
-            </button>
-          </ng-container>
-          
-          <ng-container *ngIf="auth.isAuthenticated() && auth.profileSignal() as profile">
-            <button
-              mat-button
-              #trigger="matMenuTrigger"
-              [matMenuTriggerFor]="profileMenu"
-              class="navbar__profile-btn"
-            >
-              <ng-container *ngIf="profile.images?.length; else initialsAvatar">
-                <img [src]="profile.images[0].url" [alt]="profile.display_name" class="navbar__avatar" />
-              </ng-container>
-              <ng-template #initialsAvatar>
-                <div class="navbar__avatar navbar__avatar--initials">
-                  {{ getInitials(profile.display_name) }}
-                </div>
-              </ng-template>
-              <mat-icon class="navbar__chevron" [class.navbar__chevron--open]="trigger.menuOpen">expand_more</mat-icon>
-            </button>
-            
-            <mat-menu #profileMenu="matMenu" class="navbar__profile-menu">
-              <div class="navbar__profile-header">
-                <p class="navbar__profile-name">{{ profile.display_name }}</p>
-                <p class="navbar__profile-type" *ngIf="profile.product">
-                  {{ profile.product === 'premium' ? 'Spotify Premium' : 'Spotify Free' }}
-                </p>
-              </div>
-              <mat-divider></mat-divider>
-              <a mat-menu-item [href]="'https://open.spotify.com/user/' + profile.id" target="_blank" rel="noopener">
-                <mat-icon>open_in_new</mat-icon>
-                <span>View on Spotify</span>
-              </a>
-              <button mat-menu-item (click)="logout()">
-                <mat-icon>logout</mat-icon>
-                <span>Log out</span>
-              </button>
-            </mat-menu>
-          </ng-container>
+        <div class="navbar__badge" aria-label="AI-powered feature">
+          <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+          <span>AI-Powered</span>
         </div>
       </div>
     </header>
   `,
   styleUrls: ['./navbar.component.scss'],
 })
-export class NavbarComponent implements OnInit {
-  readonly isScrolled = signal(false);
-
-  constructor(public auth: SpotifyAuthService) {}
-
-  ngOnInit(): void {
-    this.checkScroll();
-  }
-
-  @HostListener('window:scroll', [])
-  onWindowScroll() {
-    this.checkScroll();
-  }
-
-  private checkScroll(): void {
-    this.isScrolled.set(window.scrollY > 20);
-  }
-
-  login(): void {
-    this.auth.login();
-  }
-
-  logout(): void {
-    this.auth.logout();
-  }
-
-  getInitials(name: string): string {
-    if (!name) return 'U';
-    const parts = name.split(' ');
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  }
-}
+export class NavbarComponent {}
