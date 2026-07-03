@@ -194,3 +194,4 @@ Click **Deploy site**. Netlify runs `node set-env.js` first (which injects the e
 1. Add OAuth PKCE authorization to save the generated playlist directly into user accounts.
 2. Implement audio player controls to preview songs directly within the TrackCard component.
 3. Integrate custom mood sliders to adjust energy, acousticness, and instrumentalness values dynamically.
+4. Assess user's listening history securely (with explicit opt-in) to provide personalized, history-aware discovery suggestions.
