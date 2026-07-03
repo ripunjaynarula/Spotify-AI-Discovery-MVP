@@ -75,7 +75,7 @@ export class AiService {
         const headers = new HttpHeaders({
           Authorization: `Bearer ${environment.openRouterApiKey || 'proxy'}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://spotify-ai-discovery.netlify.app',
+          'HTTP-Referer': 'https://spotify-ai-discovery-mvp.netlify.app',
           'X-Title': 'Spotify AI Discovery',
         });
 
@@ -134,7 +134,7 @@ export class AiService {
         const headers = new HttpHeaders({
           Authorization: `Bearer ${environment.openRouterApiKey || 'proxy'}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://spotify-ai-discovery.netlify.app',
+          'HTTP-Referer': 'https://spotify-ai-discovery-mvp.netlify.app',
           'X-Title': 'Spotify AI Discovery',
         });
 

@@ -48,7 +48,7 @@ export const environment = {
   production: true,
   openRouterBaseUrl: '/api/openai',
   openRouterModel: 'openai/gpt-4o-mini',
-  spotifyRedirectUri: 'https://spotify-ai-discovery.netlify.app/', // Must match Spotify Developer Dashboard
+  spotifyRedirectUri: 'https://spotify-ai-discovery-mvp.netlify.app/', // Must match Spotify Developer Dashboard
 ${sharedConfig}};
 `;
 

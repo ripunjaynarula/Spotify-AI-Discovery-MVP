@@ -44,7 +44,7 @@ exports.handler = async function (event, context) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://spotify-ai-discovery.netlify.app',
+        'HTTP-Referer': 'https://spotify-ai-discovery-mvp.netlify.app',
         'X-Title': 'Spotify AI Discovery',
       },
     };
