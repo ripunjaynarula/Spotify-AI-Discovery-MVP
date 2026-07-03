@@ -32,7 +32,7 @@
           <span class="playlist__meta-item">{{ formatDate(currentPlaylist.createdAt) }}</span>
         </div>
         
-        <div class="playlist__actions">
+        <div class="playlist__actions" *ngIf="isLoggedIn">
           <button 
             *ngIf="!savedPlaylistUrl()"
             mat-raised-button 

@@ -1,373 +1,242 @@
 # Spotify AI Discovery MVP
 
-An AI-native music discovery layer built on top of Spotify that combines a user's listening history with their current intent to generate personalized playlists.
-
-Built as part of a Product Management fellowship, this project demonstrates how Large Language Models can augment traditional recommendation systems by understanding *why* a user wants music at a particular moment instead of relying solely on historical listening behavior.
+An AI-native music discovery interaction layer built on top of Spotify. This application translates real-time, situational listening intents into personalized 20-track playlists — bypassing the limitations of repetitive historical recommendation loops.
 
 ---
 
-# Overview
+## Overview
 
-Spotify already provides one of the world's best recommendation engines. However, recommendations are primarily optimized around historical listening behavior.
-
-This MVP introduces an AI reasoning layer that combines:
-
-- Current user intent
-- Listening history
-- Recently played songs
-- Top artists
-- Top tracks
-- Discovery preferences
-
-to generate playlists that better match the user's present context.
-
-Spotify remains the music catalog and playlist platform, while OpenRouter (GPT-4o-mini) performs the reasoning required to convert natural language into structured discovery strategies.
+Spotify AI Discovery acts as a premium client-side wrapper. It translates natural listening intents (e.g. obscurity preferences, commute vibes, workout drills) into structured search queries directed at the Spotify Web API. Spotify serves as the catalog engine, OpenRouter (GPT-4o-mini) acts as the cognitive layer, and the app handles intelligent curation, deduplication, and diversity-aware track selection.
 
 ---
 
-# Problem Statement
+## Key Features
 
-## Target Users
+### Spotify Authentication (OAuth PKCE)
+- Full Authorization Code + PKCE flow — login, logout, auto session restore, auto token refresh
+- Fetches user profile, avatar, display name, account type on login
+- Navbar profile button with circular avatar and animated dropdown chevron
+- All guest/demo placeholders replaced with real Spotify user data post-login
 
-Working professionals who:
+### AI-Powered Playlist Generation
+- Six discovery modes: Hidden Gems, Focus, Workout, Commute, Chill, Surprise Me
+- Two-step questionnaire with chip selection and free-text custom input
+- AI translates intent + listening history into structured search parameters
+- Generates 20-track playlists from real Spotify catalog
 
-- listen to Spotify daily
-- rely on Discover Weekly, Smart Shuffle, Radio and Daily Mixes
-- eventually experience repetitive recommendations
-- want recommendations based on what they feel like listening to *right now*
+### Intelligent Playlist Refinement
+All five refinement actions send the AI the full previous playlist context (tracks, genres, mood, activity, strategy) plus the user's listening history:
+- **More like this** — increases similarity, keeps mood/activity, adds new discoveries
+- **Less like this** — reduces similarity, pivots away while preserving original intent
+- **Different artists** — same genre/mood, swaps artists, explicitly excludes previous playlist artists
+- **Different genres** — same mood/activity, explores adjacent genres, excludes previous genres
+- **Refresh** — same strategy, entirely fresh tracks, minimal overlap
 
-Examples:
+### Track Selection Quality
+- Multiple targeted Spotify searches (genre+mood, artist inspiration, keywords)
+- Diversity-aware ranking: max 2 tracks per artist, max 1 per album
+- Discovery-level-aware sorting (Familiar / Balanced / Deep Cuts)
+- Excluded-genre filtering
+- Deduplication by track ID and normalized title+artist
 
-- "I'm driving through the mountains."
-- "Give me energetic cycling songs."
-- "I want something like Coldplay but less mainstream."
-- "Help me discover indie artists similar to what I already enjoy."
+### Save to Spotify
+- Save generated playlists directly to the authenticated user's Spotify account
+- "Open in Spotify" button appears after saving
+- Buttons only visible when logged in
+- Graceful 403 handling with re-auth guidance
 
----
+### Robust AI Response Parsing
+- Handles markdown code blocks, ```json fences, plain JSON, wrapped objects, stray whitespace
+- Extracts JSON boundaries from conversational AI output
+- Logs raw responses in dev mode for debugging
+- Never overwrites the existing playlist on parse failure
 
-# Research Summary
-
-Primary research included:
-
-- Survey responses
-- Face-to-face interviews
-- AI-powered review mining across Google Play and Reddit
-
-Key findings:
-
-- Users trust Spotify's recommendations but experience recommendation fatigue.
-- Discovery often becomes a manual search task.
-- Users cannot express temporary listening contexts.
-- Existing recommendation systems optimize for similarity instead of exploration.
-
----
-
-# AI-native Solution
-
-Instead of generating recommendations only from intent:
-
-```
-Spotify History
-        +
-Current Intent
-        +
-AI Reasoning
-        ↓
-Discovery Strategy
-        ↓
-Spotify Search
-        ↓
-20-song Playlist
-        ↓
-Save directly to Spotify
-```
-
-This allows recommendations to balance:
-
-- familiarity
-- novelty
-- mood
-- activity
-- discovery level
+### Dev-Only Logging
+- AI prompts, raw responses, and parsed JSON logged to console in development
+- Spotify search queries, result counts, and selected tracks logged
+- All logging suppressed in production builds
 
 ---
 
-# Features
+## Architecture & Folder Structure
 
-## Spotify OAuth (PKCE)
-
-- Secure Spotify login
-- User profile
-- Profile picture
-- Automatic authentication restoration
-- Logout
-- Save generated playlists directly to Spotify
-
----
-
-## Personalized Taste Profile
-
-After login the application automatically loads:
-
-- User profile
-- Top artists
-- Top tracks
-- Recently played tracks
-
-These are used to build a personalized music profile.
-
----
-
-## AI Playlist Generation
-
-Users describe what they want in natural language.
-
-Examples:
-
-- Cycling workout
-- Coding session
-- Rainy evening
-- Road trip
-- Hidden gems
-
-The AI combines:
-
-- listening history
-- current intent
-- discovery preference
-
-to generate a playlist strategy.
-
----
-
-## Intelligent Playlist Refinement
-
-Users can iteratively improve playlists using:
-
-- More like this
-- Less like this
-- Different artists
-- Different genres
-- Refresh playlist
-
-Each refinement preserves previous context while modifying only the requested aspects.
-
----
-
-## Spotify Playlist Creation
-
-Generated recommendations are:
-
-- searched on Spotify
-- deduplicated
-- converted into Spotify tracks
-- saved directly to the user's account
-
----
-
-# Architecture
-
-```
-User
- │
- ▼
-Spotify OAuth (PKCE)
- │
- ▼
-Spotify APIs
- │
- ├── User Profile
- ├── Top Artists
- ├── Top Tracks
- ├── Recently Played
- │
- ▼
-Taste Profile
- │
- ▼
-User Intent
- │
- ▼
-OpenRouter (GPT-4o-mini)
- │
- ▼
-Discovery Strategy
- │
- ▼
-Spotify Search API
- │
- ▼
-Playlist Generator
- │
- ▼
-Spotify Playlist
-```
-
----
-
-# Project Structure
+Angular 17 with Standalone Components and Signals.
 
 ```
 src/
 ├── app/
-│   ├── constants/
+│   ├── constants/            # Discovery mode configs & mock data for logged-out state
 │   ├── core/
 │   │   └── services/
+│   │       ├── ai.service.ts                # OpenRouter API — prompt building, parsing, refinement
+│   │       ├── spotify.service.ts           # Spotify Web API — search, taste profile, playlist creation
+│   │       ├── spotify-auth.service.ts      # OAuth PKCE flow — login, logout, token management
+│   │       ├── playlist-generator.service.ts # Orchestrates AI → Spotify → playlist pipeline
+│   │       └── discovery-state.service.ts   # Intent state management between components
 │   ├── features/
-│   │   ├── discovery/
-│   │   ├── home/
-│   │   ├── playlist/
-│   │   ├── success/
-│   │   └── not-found/
-│   ├── models/
-│   ├── shared/
-│   ├── app.routes.ts
-│   └── app.config.ts
+│   │   ├── discovery/        # Multi-step questionnaire flow
+│   │   ├── home/             # Entry portal — recently played & recommended sections
+│   │   ├── not-found/        # 404 route
+│   │   ├── playlist/         # Playlist display, explanation, refinement, save-to-Spotify
+│   │   └── success/          # Post-feedback confirmation
+│   ├── models/               # TypeScript interfaces (Track, AiSearchParams, etc.)
+│   └── shared/
+│       ├── components/       # Navbar, track cards, skeleton loaders, error banners
+│       └── pipes/            # Duration formatting
 ├── environments/
-│   ├── environment.ts
-│   └── environment.development.ts
+│   ├── environment.ts              # Production config (uses Netlify env vars)
+│   └── environment.development.ts  # Local dev config (fill in your credentials)
+├── styles.scss               # Global styles including Material overrides & navbar dropdown
 └── theme/
+    ├── _variables.scss        # Color tokens, spacing, typography
+    └── _mixins.scss           # Responsive breakpoints, flex helpers
 ```
 
 ---
 
-# Technology Stack
+## Application Flow
 
-- Angular 17
-- Standalone Components
-- Angular Signals
-- Angular Material
-- SCSS
-- Spotify Web API
-- Spotify OAuth PKCE
-- OpenRouter GPT-4o-mini
+1. **Home** — Dark-themed portal with time-based greeting, discovery mode cards, recently played, and recommended sections. Shows mock data when logged out; real Spotify data when logged in.
+2. **Discovery** — User selects a mode and answers 1–2 questions (chips or free text; only one input source active at a time).
+3. **AI Translation** — OpenRouter receives the intent + user's listening history and returns structured search parameters (genres, mood, tempo, energy, activity, artist inspirations, discovery level, search keywords).
+4. **Spotify Search** — Multiple targeted searches run in parallel; results are merged, deduplicated, filtered by excluded genres, ranked by discovery level, and selected for artist/album diversity.
+5. **Playlist Display** — 20-track playlist with artwork grid, explanation panel ("Why these songs?"), and refinement toolbar.
+6. **Refinement** — User clicks a refinement button → animated progress bar appears → buttons disabled → AI receives full context → new playlist replaces old one smoothly (no blank page).
+7. **Save** — Authenticated users can save the playlist to their Spotify account and open it directly.
 
 ---
 
-# Environment Configuration
+## Technology Stack
 
-## Local Development
+- **Framework**: Angular 17 (Standalone Components, Signals)
+- **Styling**: Vanilla SCSS with Spotify-aligned design tokens
+- **UI Components**: Angular Material (MatIcon, MatButton, MatMenu, MatSnackBar, MatRipple, MatTooltip, MatDivider)
+- **AI**: OpenRouter API (GPT-4o-mini)
+- **Music Catalog**: Spotify Web API
+- **Auth**: OAuth 2.0 Authorization Code + PKCE
+- **Deployment**: Netlify (with serverless proxy for API key protection)
 
-Configure:
+---
 
-`src/environments/environment.development.ts`
+## Environment Variables
 
-Example:
+### Local Development (`environment.development.ts`)
 
-```ts
-spotifyClientId: "...",
-spotifyRedirectUri: "http://127.0.0.1:4200",
-openRouterApiKey: "...",
-openRouterModel: "openai/gpt-4o-mini"
+```typescript
+export const environment = {
+  production: false,
+  openRouterApiKey: 'your-openrouter-key',
+  openRouterBaseUrl: 'https://openrouter.ai/api/v1',
+  openRouterModel: 'openai/gpt-4o-mini',
+  spotifyClientId: 'your-spotify-client-id',
+  spotifyClientSecret: 'your-spotify-client-secret',
+  spotifyRedirectUri: 'http://127.0.0.1:4200',
+  spotifyBaseUrl: 'https://api.spotify.com/v1',
+  spotifyAuthUrl: 'https://accounts.spotify.com/api/token',
+  appName: 'Spotify AI Discovery',
+  appVersion: '1.0.0',
+};
 ```
 
----
+### Production (`environment.ts`)
 
-## Production
-
-Production builds use:
-
-`src/environments/environment.ts`
-
-Secrets should **not** be committed.
-
-Deployments should inject:
-
-- OPENROUTER_API_KEY
-- SPOTIFY_CLIENT_ID
-- SPOTIFY_CLIENT_SECRET
-
-through Netlify environment variables.
+Production builds use `set-env.js` to inject Netlify environment variables at build time. The OpenRouter API key is proxied through a Netlify serverless function (`netlify/functions/openai.js`) — never exposed to the client.
 
 ---
 
-# Running Locally
+## Setup & Installation
 
-Install dependencies:
+### 1. External Accounts
+
+- **Spotify Developer Portal**: Create a free account at [developer.spotify.com](https://developer.spotify.com/). Register an app, add `http://127.0.0.1:4200` as a Redirect URI, and note the Client ID.
+- **OpenRouter**: Register at [openrouter.ai](https://openrouter.ai/). Get an API key and add credits.
+
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-Run:
+### 3. Configure Credentials
+
+Fill in `src/environments/environment.development.ts` with your keys (this file is gitignored).
+
+### 4. Run Locally
 
 ```bash
-ng serve
+npx ng serve --host 127.0.0.1
 ```
 
-Open:
+Open `http://127.0.0.1:4200` in your browser.
 
-```
-http://127.0.0.1:4200
+### 5. Production Build
+
+```bash
+npm run build
 ```
 
 ---
 
-# Deployment
+## Deployment (Netlify)
 
-Deploy to Netlify.
+### Step 1 — Connect repository
 
-Required environment variables:
+Push to GitHub. In Netlify, click **Add new site → Import existing project** and select the repo.
 
-```
-OPENROUTER_API_KEY
+### Step 2 — Build settings (auto-detected from `netlify.toml`)
 
-SPOTIFY_CLIENT_ID
+| Setting | Value |
+|---|---|
+| Build command | `npm run build:ci` |
+| Publish directory | `dist/spotify-ai-discovery/browser` |
 
-SPOTIFY_CLIENT_SECRET
-```
+### Step 3 — Environment variables
 
-Spotify Developer Dashboard should contain:
+In **Site configuration → Environment variables**, add:
 
-```
-http://127.0.0.1:4200
+| Key | Source |
+|---|---|
+| `OPENROUTER_API_KEY` | [openrouter.ai/keys](https://openrouter.ai/keys) |
+| `SPOTIFY_CLIENT_ID` | [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) |
+| `SPOTIFY_CLIENT_SECRET` | [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) |
+| `SPOTIFY_REDIRECT_URI` | Your Netlify site URL (e.g. `https://spotify-ai-discovery.netlify.app`) |
 
-https://your-netlify-site.netlify.app
-```
+### Step 4 — Deploy
 
-as Redirect URIs.
-
----
-
-# AI Workflow
-
-1. User logs into Spotify.
-2. Application loads listening history.
-3. User describes their current listening intent.
-4. GPT-4o-mini generates a discovery strategy.
-5. Spotify Search retrieves matching songs.
-6. Tracks are ranked and deduplicated.
-7. A playlist of up to 20 songs is generated.
-8. User can refine the playlist.
-9. Playlist can be saved directly to Spotify.
+Click **Deploy site**. `set-env.js` injects the env vars at build time. The OpenRouter key is proxied through a Netlify function.
 
 ---
 
-# Error Handling
+## OAuth Scopes
 
-The application gracefully handles:
+The app requests the following Spotify scopes:
 
-- expired Spotify tokens
-- network failures
-- OpenRouter failures
-- Spotify API failures
-- rate limits
+| Scope | Purpose |
+|---|---|
+| `user-read-private` | Read account details |
+| `user-read-email` | Read email address |
+| `user-top-read` | Fetch top artists/tracks for taste profile |
+| `user-read-recently-played` | Fetch recently played tracks |
+| `playlist-modify-public` | Create and save playlists |
+| `playlist-modify-private` | Create private playlists |
 
-with informative user feedback.
-
----
-
-# Assumptions
-
-- Spotify provides the music catalog.
-- GPT-4o-mini performs reasoning only.
-- AI recommends tracks but Spotify remains the source of truth.
-- Search quality depends on Spotify's available catalog.
+> **Note:** If you logged in before playlist scopes were added, you must log out and log back in to grant the new permissions.
 
 ---
 
-# Future Improvements
+## Assumptions & Limitations
 
-- Voice-based playlist generation
-- Learning from explicit user feedback
-- Playlist sharing and collaborative refinement
+- **PKCE Flow**: All auth happens client-side with PKCE. No backend session management.
+- **API Key Security**: In production, the OpenRouter key is proxied through a Netlify serverless function. Spotify auth uses PKCE (no client secret needed client-side).
+- **Spotify API Rate Limits**: Multiple searches per playlist generation may hit rate limits under heavy use.
+- **AI Model**: Relies on GPT-4o-mini via OpenRouter. Response quality depends on model availability and prompt adherence.
+
+---
+
+## Future Improvements
+
+1. Audio preview playback within track cards
+2. Custom mood/energy sliders for fine-tuned control
+3. Playlist history — view and replay previously generated playlists
+4. Collaborative playlists — generate for group listening sessions
+5. Offline mode with cached playlist data

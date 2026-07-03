@@ -133,15 +133,48 @@ export class SpotifyAuthService {
   }
 
   getValidAccessToken(): Observable<string> {
-    const token = this.getAccessToken();
-    const expiresAt = localStorage.getItem('spotify_token_expires');
-    
-    // If token exists and hasn't expired (with 1 min buffer)
-    if (token && expiresAt && parseInt(expiresAt) > Date.now() + 60000) {
-      return of(token);
+    if (this.isAuthenticated()) {
+      const token = this.getAccessToken();
+      const expiresAt = localStorage.getItem('spotify_token_expires');
+      
+      // If token exists and hasn't expired (with 1 min buffer)
+      if (token && expiresAt && parseInt(expiresAt) > Date.now() + 60000) {
+        return of(token);
+      }
+      
+      return this.refreshAccessToken();
+    } else {
+      const ccToken = localStorage.getItem('spotify_client_credentials_token');
+      const ccExpiresAt = localStorage.getItem('spotify_client_credentials_expires');
+      
+      if (ccToken && ccExpiresAt && parseInt(ccExpiresAt) > Date.now() + 60000) {
+        return of(ccToken);
+      }
+      return this.getClientCredentialsToken();
     }
-    
-    return this.refreshAccessToken();
+  }
+
+  private getClientCredentialsToken(): Observable<string> {
+    const credentials = btoa(`${this.clientId}:${environment.spotifyClientSecret}`);
+    const headers = new HttpHeaders({
+      Authorization: `Basic ${credentials}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    });
+    const body = new URLSearchParams({
+      grant_type: 'client_credentials'
+    });
+
+    return this.http.post<any>(this.TOKEN_URL, body.toString(), { headers }).pipe(
+      map(res => {
+        localStorage.setItem('spotify_client_credentials_token', res.access_token);
+        localStorage.setItem('spotify_client_credentials_expires', (Date.now() + res.expires_in * 1000).toString());
+        return res.access_token;
+      }),
+      catchError(err => {
+        console.error('Client credentials auth failed:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   private getAccessToken(): string | null {

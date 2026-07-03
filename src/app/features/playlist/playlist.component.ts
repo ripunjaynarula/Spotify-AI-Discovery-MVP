@@ -9,6 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { PlaylistGeneratorService } from '../../core/services/playlist-generator.service';
 import { AiService } from '../../core/services/ai.service';
 import { SpotifyService } from '../../core/services/spotify.service';
+import { SpotifyAuthService } from '../../core/services/spotify-auth.service';
 import { TrackCardComponent } from '../../shared/components/track-card/track-card.component';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
 import { ErrorBannerComponent } from '../../shared/components/error-banner/error-banner.component';
@@ -48,9 +49,14 @@ export class PlaylistComponent implements OnInit {
     private playlistGenerator: PlaylistGeneratorService,
     private aiService: AiService,
     private spotifyService: SpotifyService,
+    private spotifyAuth: SpotifyAuthService,
     private router: Router,
     private snackBar: MatSnackBar,
   ) {}
+
+  get isLoggedIn(): boolean {
+    return this.spotifyAuth.isAuthenticated();
+  }
 
   ngOnInit(): void {
     const current = this.playlistGenerator.currentPlaylist();
@@ -84,8 +90,12 @@ export class PlaylistComponent implements OnInit {
       },
       error: (err) => {
         this.isSaving.set(false);
-        this.snackBar.open('Failed to save playlist: ' + err.message, 'Dismiss', {
-          duration: 4000,
+        const status = err?.status || err?.error?.status;
+        const msg = status === 403
+          ? 'Permission denied. Please log out and log back in to grant playlist access.'
+          : 'Failed to save playlist. Please try again.';
+        this.snackBar.open(msg, 'Dismiss', {
+          duration: 5000,
           panelClass: 'error-snackbar'
         });
       }

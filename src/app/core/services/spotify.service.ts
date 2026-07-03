@@ -43,6 +43,14 @@ export class SpotifyService {
   constructor(private http: HttpClient, private auth: SpotifyAuthService) {}
 
   getTasteProfile(): Observable<TasteProfile> {
+    if (!this.auth.isAuthenticated()) {
+      return of({
+        topArtists: [],
+        topTracks: [],
+        recentlyPlayed: []
+      });
+    }
+
     return this.auth.getValidAccessToken().pipe(
       switchMap(token => {
         const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
@@ -66,6 +74,9 @@ export class SpotifyService {
   }
 
   getRecentlyPlayed(): Observable<RecentlyPlayedItem[]> {
+    if (!this.auth.isAuthenticated()) {
+      return of([]);
+    }
     return this.auth.getValidAccessToken().pipe(
       switchMap(token => {
         const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
@@ -98,7 +109,10 @@ export class SpotifyService {
   createPlaylist(name: string, description: string, trackUris: string[]): Observable<string> {
     return this.auth.getValidAccessToken().pipe(
       switchMap(token => {
-        const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+        const headers = new HttpHeaders({
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        });
         return this.http.get<any>(`${this.baseUrl}/me`, { headers }).pipe(
           switchMap(profile => {
             const userId = profile.id;
