@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatRippleModule } from '@angular/material/core';
@@ -9,6 +9,8 @@ import { DISCOVERY_MODES } from '../../constants/discovery-modes.constants';
 import { MOCK_RECENTLY_PLAYED, MOCK_RECOMMENDED } from '../../constants/mock-data.constants';
 import { DiscoveryMode, RecentlyPlayedItem, RecommendedItem } from '../../models';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
+import { SpotifyAuthService } from '../../core/services/spotify-auth.service';
+import { SpotifyService } from '../../core/services/spotify.service';
 
 @Component({
   selector: 'app-home',
@@ -26,24 +28,73 @@ import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader
 })
 export class HomeComponent implements OnInit {
   readonly discoveryModes: DiscoveryMode[] = DISCOVERY_MODES;
-  readonly recentlyPlayed = signal<RecentlyPlayedItem[]>([]);
-  readonly recommended = signal<RecommendedItem[]>([]);
-  readonly isLoading = signal(true);
+  readonly recentlyPlayed = signal<RecentlyPlayedItem[]>(MOCK_RECENTLY_PLAYED);
+  readonly recommended = signal<RecommendedItem[]>(MOCK_RECOMMENDED);
+  readonly isLoading = signal(false);
 
   readonly greetingText = this.getGreeting();
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private auth: SpotifyAuthService,
+    private spotify: SpotifyService,
+  ) {}
 
   ngOnInit(): void {
-    this.loadData();
+    // Handle Spotify OAuth callback — Spotify redirects back to '/' with ?code=...
+    this.route.queryParams.subscribe(params => {
+      const code = params['code'];
+      const error = params['error'];
+
+      if (error) {
+        console.error('Spotify auth error:', error);
+        this.router.navigate(['/'], { replaceUrl: true });
+        return;
+      }
+
+      if (code) {
+        this.isLoading.set(true);
+        this.auth.handleCallback(code).subscribe({
+          next: (success) => {
+            this.router.navigate(['/'], { replaceUrl: true });
+            if (success) {
+              this.loadRealData();
+            } else {
+              this.isLoading.set(false);
+              // Keep showing mock data on failure
+            }
+          },
+          error: () => {
+            this.router.navigate(['/'], { replaceUrl: true });
+            this.isLoading.set(false);
+          }
+        });
+      } else if (this.auth.isAuthenticated()) {
+        // Already logged in — load real Spotify data
+        this.loadRealData();
+      }
+      // Not logged in, no code → mock data is already set as default, do nothing
+    });
   }
 
-  private loadData(): void {
-    setTimeout(() => {
-      this.recentlyPlayed.set(MOCK_RECENTLY_PLAYED);
-      this.recommended.set(MOCK_RECOMMENDED);
-      this.isLoading.set(false);
-    }, 600);
+  private loadRealData(): void {
+    this.isLoading.set(true);
+    this.spotify.getRecentlyPlayed().subscribe({
+      next: (items) => {
+        // If Spotify returned data, use it; otherwise keep mock
+        if (items && items.length > 0) {
+          this.recentlyPlayed.set(items);
+        }
+        // Recommended for you: always use mock (no Spotify recommendations endpoint)
+        this.recommended.set(MOCK_RECOMMENDED);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        // On error, keep existing mock data
+        this.isLoading.set(false);
+      }
+    });
   }
 
   onDiscoveryCardClick(mode: DiscoveryMode): void {

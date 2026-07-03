@@ -1,196 +1,373 @@
 # Spotify AI Discovery MVP
 
-An AI-native music discovery interaction layer built on top of Spotify. Designed as an MVP for a Product Management fellowship, this application demonstrates how conversational and contextual AI inputs can improve catalog discovery, bypassing the limitations of repetitive historical listening profiles.
+An AI-native music discovery layer built on top of Spotify that combines a user's listening history with their current intent to generate personalized playlists.
+
+Built as part of a Product Management fellowship, this project demonstrates how Large Language Models can augment traditional recommendation systems by understanding *why* a user wants music at a particular moment instead of relying solely on historical listening behavior.
 
 ---
 
-## Overview
+# Overview
 
-Spotify AI Discovery acts as a premium client-side wrapper. It translates real-time, situational listening intents (e.g. Obscurity preferences, commute vibes, specific workout drills) into granular search queries directed at the Spotify Web API. Spotify serves as the reliable catalog engine, while OpenRouter acts as the cognitive layer that translates natural expressions into structured sonic metadata.
+Spotify already provides one of the world's best recommendation engines. However, recommendations are primarily optimized around historical listening behavior.
+
+This MVP introduces an AI reasoning layer that combines:
+
+- Current user intent
+- Listening history
+- Recently played songs
+- Top artists
+- Top tracks
+- Discovery preferences
+
+to generate playlists that better match the user's present context.
+
+Spotify remains the music catalog and playlist platform, while OpenRouter (GPT-4o-mini) performs the reasoning required to convert natural language into structured discovery strategies.
 
 ---
 
-## Problem Statement & Research Summary
+# Problem Statement
 
-### Target Users
-Working professionals who use Spotify daily, rely on recommendations (Smart Shuffle, Daily Mixes, Discover Weekly, Spotify Radio), but experience repetitive recommendation loops, lack custom preference control, and cannot communicate temporary listening scenarios.
+## Target Users
 
-### Validated Research Findings
-1. Users like Spotify's underlying catalog and general quality but experience recommendation fatigue over time.
-2. Discovery becomes a manual search task when users want to break out of their usual genres.
-3. Current recommendation engines rely almost entirely on historical listening behavior, leaving no clean way to communicate a transient context (e.g. deep coding vs. admin work, or exact gym paces).
+Working professionals who:
+
+- listen to Spotify daily
+- rely on Discover Weekly, Smart Shuffle, Radio and Daily Mixes
+- eventually experience repetitive recommendations
+- want recommendations based on what they feel like listening to *right now*
+
+Examples:
+
+- "I'm driving through the mountains."
+- "Give me energetic cycling songs."
+- "I want something like Coldplay but less mainstream."
+- "Help me discover indie artists similar to what I already enjoy."
 
 ---
 
-## Architecture & Folder Structure
+# Research Summary
 
-The project conforms to an enterprise-grade standalone structure in Angular 17.
+Primary research included:
+
+- Survey responses
+- Face-to-face interviews
+- AI-powered review mining across Google Play and Reddit
+
+Key findings:
+
+- Users trust Spotify's recommendations but experience recommendation fatigue.
+- Discovery often becomes a manual search task.
+- Users cannot express temporary listening contexts.
+- Existing recommendation systems optimize for similarity instead of exploration.
+
+---
+
+# AI-native Solution
+
+Instead of generating recommendations only from intent:
+
+```
+Spotify History
+        +
+Current Intent
+        +
+AI Reasoning
+        ↓
+Discovery Strategy
+        ↓
+Spotify Search
+        ↓
+20-song Playlist
+        ↓
+Save directly to Spotify
+```
+
+This allows recommendations to balance:
+
+- familiarity
+- novelty
+- mood
+- activity
+- discovery level
+
+---
+
+# Features
+
+## Spotify OAuth (PKCE)
+
+- Secure Spotify login
+- User profile
+- Profile picture
+- Automatic authentication restoration
+- Logout
+- Save generated playlists directly to Spotify
+
+---
+
+## Personalized Taste Profile
+
+After login the application automatically loads:
+
+- User profile
+- Top artists
+- Top tracks
+- Recently played tracks
+
+These are used to build a personalized music profile.
+
+---
+
+## AI Playlist Generation
+
+Users describe what they want in natural language.
+
+Examples:
+
+- Cycling workout
+- Coding session
+- Rainy evening
+- Road trip
+- Hidden gems
+
+The AI combines:
+
+- listening history
+- current intent
+- discovery preference
+
+to generate a playlist strategy.
+
+---
+
+## Intelligent Playlist Refinement
+
+Users can iteratively improve playlists using:
+
+- More like this
+- Less like this
+- Different artists
+- Different genres
+- Refresh playlist
+
+Each refinement preserves previous context while modifying only the requested aspects.
+
+---
+
+## Spotify Playlist Creation
+
+Generated recommendations are:
+
+- searched on Spotify
+- deduplicated
+- converted into Spotify tracks
+- saved directly to the user's account
+
+---
+
+# Architecture
+
+```
+User
+ │
+ ▼
+Spotify OAuth (PKCE)
+ │
+ ▼
+Spotify APIs
+ │
+ ├── User Profile
+ ├── Top Artists
+ ├── Top Tracks
+ ├── Recently Played
+ │
+ ▼
+Taste Profile
+ │
+ ▼
+User Intent
+ │
+ ▼
+OpenRouter (GPT-4o-mini)
+ │
+ ▼
+Discovery Strategy
+ │
+ ▼
+Spotify Search API
+ │
+ ▼
+Playlist Generator
+ │
+ ▼
+Spotify Playlist
+```
+
+---
+
+# Project Structure
 
 ```
 src/
 ├── app/
-│   ├── constants/            # Immutable mock catalogs & discovery questions configs
+│   ├── constants/
 │   ├── core/
-│   │   └── services/         # State management, Spotify catalog API, OpenRouter wrapper
+│   │   └── services/
 │   ├── features/
-│   │   ├── discovery/        # Multistep lightweight questionnaire forms
-│   │   ├── home/             # Entry portal, recently played & recommended playlists
-│   │   ├── not-found/        # 404 Route handling
-│   │   ├── playlist/         # Playlist displays, explanation panels, & feedback controls
-│   │   └── success/          # Post-feedback notification screen
-│   ├── models/               # Strongly-typed TypeScript interfaces
+│   │   ├── discovery/
+│   │   ├── home/
+│   │   ├── playlist/
+│   │   ├── success/
+│   │   └── not-found/
+│   ├── models/
 │   ├── shared/
-│   │   ├── components/       # Reusable components: skeletons, track cards, error banners
-│   │   └── pipes/            # Track duration transforms
-│   ├── app.component.ts      # Root layout
-│   ├── app.config.ts         # Application wide providers (animations, HTTP client, routers)
-│   └── app.routes.ts         # Lazy-loaded route map definitions
-├── theme/
-│   ├── _mixins.scss          # Responsive layout breakpoints, flex helpers, typography classes
-│   └── _variables.scss       # Theme-aligned color tokens, space scales, border-radii
-└── environments/
-    ├── environment.ts        # Production build environmental configurations
-    └── environment.development.ts # Local development environmental configurations
+│   ├── app.routes.ts
+│   └── app.config.ts
+├── environments/
+│   ├── environment.ts
+│   └── environment.development.ts
+└── theme/
 ```
 
 ---
 
-## Application Flow
+# Technology Stack
 
-1. **Dashboard Home**: User lands on a dark-themed portal showing recently played mock tracks and the feature portal "Discover Your Way".
-2. **Discovery Configurator**: User selects a mode (Hidden Gems, Focus, Workout, Commute, Chill, Surprise Me) and answers up to two target questions (supporting custom inputs).
-3. **Structured Translation (AI)**: OpenRouter API parses the questions, generating structured search criteria (Title, Description, target genres, moods, tempo, search keywords, explanation).
-4. **Catalog Lookup (Spotify)**: The search criteria are translated to Spotify API search endpoints to pull actual catalog records.
-5. **Curation Display**: The generated playlist renders the metadata, tracks list, an explanation panel ("Why these songs?"), and a feedback toolbar.
-6. **Refinement Iteration**: User provides feedback (e.g., More/Less like this, different artists, new genres) which immediately re-sends instructions to OpenRouter to pivot variables and reload the catalog tracks.
-7. **Success Confirmation**: "More/Less like this" saves choices to state and redirects to a success screen confirming preferences are updated.
-
----
-
-## Technology Stack
-
-- **Framework**: Angular 17 (Strict Mode, Standalone Components, Signals)
-- **Styling**: Vanilla SCSS utilizing Spotify-aligned design variables (no TailwindCSS)
-- **UI Components**: Angular Material (MatIcon, MatButton, MatInput, MatFormField, MatRipple, MatTooltip, MatSnackBar)
-- **API Services**: Spotify Web API, OpenRouter API (OpenAI GPT-4o-mini)
-- **Build Tool**: Angular CLI
+- Angular 17
+- Standalone Components
+- Angular Signals
+- Angular Material
+- SCSS
+- Spotify Web API
+- Spotify OAuth PKCE
+- OpenRouter GPT-4o-mini
 
 ---
 
-## Environment Variables
+# Environment Configuration
 
-Configure placeholders in the following files:
+## Local Development
 
-### src/environments/environment.ts (Production) & environment.development.ts (Development)
+Configure:
 
-```typescript
-export const environment = {
-  production: true, // false in environment.development.ts
-  openRouterApiKey: '', // Paste your OpenRouter API Key here
-  openRouterBaseUrl: 'https://openrouter.ai/api/v1',
-  openRouterModel: 'openai/gpt-4o-mini',
-  spotifyClientId: '', // Paste your Spotify Client ID here
-  spotifyClientSecret: '', // Paste your Spotify Client Secret here
-  spotifyBaseUrl: 'https://api.spotify.com/v1',
-  spotifyAuthUrl: 'https://accounts.spotify.com/api/token',
-  appName: 'Spotify AI Discovery',
-  appVersion: '1.0.0',
-};
+`src/environments/environment.development.ts`
+
+Example:
+
+```ts
+spotifyClientId: "...",
+spotifyRedirectUri: "http://127.0.0.1:4200",
+openRouterApiKey: "...",
+openRouterModel: "openai/gpt-4o-mini"
 ```
 
 ---
 
-## How AI & Spotify API Work Together
+## Production
 
-### OpenRouter Curation
-The `AiService` compiles the answers from the discovery flow and formats a system instructions prompt enforcing a JSON-Schema response. The model outputs a JSON payload specifying song-search keywords and music attributes.
+Production builds use:
 
-### Spotify Catalog Fetching
-The `SpotifyService` authenticates via Client Credentials Flow (obtaining a temporary token). It runs searches across the generated keywords and filtering variables, maps the returned tracks (album covers, durations, URLs), and deduplicates items.
+`src/environments/environment.ts`
 
-### Resilient Fallback Mechanics
-If no API keys are supplied (or if API endpoints fail due to network or rate limits):
-- **AI Fallback**: The app returns simulated playlist metadata containing realistic context descriptions matching the user's selected mode.
-- **Spotify Fallback**: The app falls back to a curated offline mock catalog of actual popular songs, ensuring the application remains fully testable without credentials.
+Secrets should **not** be committed.
+
+Deployments should inject:
+
+- OPENROUTER_API_KEY
+- SPOTIFY_CLIENT_ID
+- SPOTIFY_CLIENT_SECRET
+
+through Netlify environment variables.
 
 ---
 
-## Setup & Installation
+# Running Locally
 
-### 1. External Accounts Setup
-- **Spotify Developer Portal**: Create a free developer account at [developer.spotify.com](https://developer.spotify.com/). Register a new app to obtain your Client ID and Client Secret.
-- **OpenRouter Account**: Register at [openrouter.ai](https://openrouter.ai/). Obtain a developer API Key and top-up credits.
+Install dependencies:
 
-### 2. Install Dependencies
-Run the installation command in your workspace directory:
 ```bash
 npm install
 ```
 
-### 3. Setup Credentials
-Copy the credentials into `src/environments/environment.ts` and `src/environments/environment.development.ts`.
+Run:
 
-### 4. Running Locally
-Launch the local development server:
 ```bash
 ng serve
 ```
-Open `http://localhost:4200` in your web browser.
 
-### 5. Production Build
-Verify production compilation:
-```bash
-npm run build
+Open:
+
+```
+http://127.0.0.1:4200
 ```
 
 ---
 
-## Deployment
+# Deployment
 
-This app is a client-side SPA configured for Netlify. A `netlify.toml` at the project root handles the full build and routing configuration automatically.
+Deploy to Netlify.
 
-### Netlify (recommended)
+Required environment variables:
 
-**Step 1 — Connect your repository**
+```
+OPENROUTER_API_KEY
 
-1. Push this repository to GitHub.
-2. Go to [app.netlify.com](https://app.netlify.com) and click **Add new site → Import an existing project**.
-3. Select your GitHub repository.
+SPOTIFY_CLIENT_ID
 
-**Step 2 — Build settings** (auto-detected from `netlify.toml`)
+SPOTIFY_CLIENT_SECRET
+```
 
-| Setting | Value |
-|---|---|
-| Build command | `npm run build:ci` |
-| Publish directory | `dist/spotify-ai-discovery/browser` |
+Spotify Developer Dashboard should contain:
 
-**Step 3 — Environment variables**
+```
+http://127.0.0.1:4200
 
-In Netlify → **Site configuration → Environment variables**, add:
+https://your-netlify-site.netlify.app
+```
 
-| Key | Where to get it |
-|---|---|
-| `OPENROUTER_API_KEY` | [openrouter.ai/keys](https://openrouter.ai/keys) |
-| `SPOTIFY_CLIENT_ID` | [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) |
-| `SPOTIFY_CLIENT_SECRET` | [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) |
-
-**Step 4 — Deploy**
-
-Click **Deploy site**. Netlify runs `node set-env.js` first (which injects the env vars into the Angular environment files) and then builds the production bundle. No secrets ever touch git.
-
-> If credentials are missing, the app automatically falls back to the mock catalog so it never shows a blank page.
-
-
-
-## Assumptions & Limitations
-
-- **Client Credentials Flow**: Client Credentials authentication is used to query the public Spotify catalog. No personal user playlists are read or modified, which avoids login gates.
-- **Client Key Security**: In a production environment, API keys should be hidden behind a proxy backend. This MVP is configured as a serverless SPA to meet PM fellowship constraints.
+as Redirect URIs.
 
 ---
 
-## Future Improvements
+# AI Workflow
 
-1. Add OAuth PKCE authorization to save the generated playlist directly into user accounts.
-2. Implement audio player controls to preview songs directly within the TrackCard component.
-3. Integrate custom mood sliders to adjust energy, acousticness, and instrumentalness values dynamically.
+1. User logs into Spotify.
+2. Application loads listening history.
+3. User describes their current listening intent.
+4. GPT-4o-mini generates a discovery strategy.
+5. Spotify Search retrieves matching songs.
+6. Tracks are ranked and deduplicated.
+7. A playlist of up to 20 songs is generated.
+8. User can refine the playlist.
+9. Playlist can be saved directly to Spotify.
+
+---
+
+# Error Handling
+
+The application gracefully handles:
+
+- expired Spotify tokens
+- network failures
+- OpenRouter failures
+- Spotify API failures
+- rate limits
+
+with informative user feedback.
+
+---
+
+# Assumptions
+
+- Spotify provides the music catalog.
+- GPT-4o-mini performs reasoning only.
+- AI recommends tracks but Spotify remains the source of truth.
+- Search quality depends on Spotify's available catalog.
+
+---
+
+# Future Improvements
+
+- Voice-based playlist generation
+- Learning from explicit user feedback
+- Playlist sharing and collaborative refinement

@@ -12,6 +12,14 @@
   publish = "dist/spotify-ai-discovery/browser"
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Proxy API requests to secure OpenRouter function
+# ─────────────────────────────────────────────────────────────────────────────
+[[redirects]]
+  from   = "/api/openai/*"
+  to     = "/.netlify/functions/openai/:splat"
+  status = 200
+
+# ─────────────────────────────────────────────────────────────────────────────
 # SPA routing — send all routes to index.html so Angular Router works
 # ─────────────────────────────────────────────────────────────────────────────
 [[redirects]]

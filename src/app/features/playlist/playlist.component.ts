@@ -39,9 +39,10 @@ export class PlaylistComponent implements OnInit {
   readonly refineError = signal<string | null>(null);
   readonly showExplanation = signal(true);
   readonly feedbackTypes = FEEDBACK_TYPES;
+  
+  readonly isSaving = signal(false);
+  readonly savedPlaylistUrl = signal<string | null>(null);
 
-  readonly isUsingMockData = this.spotifyService.isUsingMock;
-  readonly isUsingFallbackAi = this.aiService.isUsingFallback;
 
   constructor(
     private playlistGenerator: PlaylistGeneratorService,
@@ -60,24 +61,46 @@ export class PlaylistComponent implements OnInit {
     this.playlist.set(current);
   }
 
-  onFeedback(feedbackType: FeedbackType['type']): void {
-    if (feedbackType === 'more_like_this' || feedbackType === 'less_like_this') {
-      this.submitFeedback(feedbackType);
-    } else {
-      this.refinePlaylist(feedbackType);
+  saveToSpotify(): void {
+    const current = this.playlist();
+    if (!current || this.isSaving()) return;
+
+    this.isSaving.set(true);
+    
+    // Get valid track URIs (only real Spotify tracks have spotify:track:id URIs)
+    // The Track model has `id`, so URI is `spotify:track:${id}`
+    const uris = current.tracks.map(t => `spotify:track:${t.id}`);
+    
+    this.spotifyService.createPlaylist(current.title, current.description, uris).subscribe({
+      next: (url) => {
+        this.isSaving.set(false);
+        this.savedPlaylistUrl.set(url);
+        this.snackBar.open('Playlist saved to your Spotify account!', 'Open', {
+          duration: 5000,
+          panelClass: 'success-snackbar'
+        }).onAction().subscribe(() => {
+          window.open(url, '_blank');
+        });
+      },
+      error: (err) => {
+        this.isSaving.set(false);
+        this.snackBar.open('Failed to save playlist: ' + err.message, 'Dismiss', {
+          duration: 4000,
+          panelClass: 'error-snackbar'
+        });
+      }
+    });
+  }
+
+  openSpotify(): void {
+    const url = this.savedPlaylistUrl();
+    if (url) {
+      window.open(url, '_blank');
     }
   }
 
-  private submitFeedback(feedbackType: 'more_like_this' | 'less_like_this'): void {
-    const label = feedbackType === 'more_like_this' ? 'More like this' : 'Less like this';
-    this.snackBar.open(
-      `Preference recorded: "${label}". Future recommendations will improve.`,
-      'Dismiss',
-      { duration: 4000, panelClass: 'feedback-snackbar' },
-    );
-    this.router.navigate(['/success'], {
-      queryParams: { feedback: feedbackType },
-    });
+  onFeedback(feedbackType: FeedbackType['type']): void {
+    this.refinePlaylist(feedbackType);
   }
 
   private refinePlaylist(feedbackType: FeedbackType['type']): void {
@@ -87,6 +110,7 @@ export class PlaylistComponent implements OnInit {
     this.playlistGenerator.refinePlaylist(feedbackType).subscribe({
       next: (refined) => {
         this.playlist.set(refined);
+        this.savedPlaylistUrl.set(null); // Reset save state for new tracks
         this.isRefining.set(false);
         this.snackBar.open('Playlist refreshed based on your feedback', 'Dismiss', {
           duration: 3000,

@@ -94,10 +94,19 @@ export class DiscoveryComponent implements OnInit {
 
   onCustomInput(value: string): void {
     this.customInputValue.set(value);
-    if (value.trim()) {
-      const question = this.currentQuestion();
-      if (question) {
-        this.answers.update((prev) => ({ ...prev, [question.id]: value.trim() }));
+    const question = this.currentQuestion();
+    if (question) {
+      this.answers.update((prev) => ({ ...prev, [question.id]: value.trim() }));
+    }
+  }
+
+  onCustomInputFocus(): void {
+    const question = this.currentQuestion();
+    if (question) {
+      const currentAnswer = this.answers()[question.id];
+      if (question.options.includes(currentAnswer)) {
+        // Clear the selected chip if the input is focused
+        this.answers.update((prev) => ({ ...prev, [question.id]: '' }));
       }
     }
   }

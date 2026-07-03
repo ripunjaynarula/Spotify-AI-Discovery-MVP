@@ -1,9 +1,10 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError, timer } from 'rxjs';
-import { catchError, map, timeout, retry } from 'rxjs/operators';
+import { Observable, throwError, timer, of } from 'rxjs';
+import { catchError, map, switchMap, timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { AiSearchParams, DiscoveryIntent, FeedbackType } from '../../models';
+import { AiSearchParams, DiscoveryIntent, FeedbackType, GeneratedPlaylist } from '../../models';
+import { SpotifyService, TasteProfile } from './spotify.service';
 
 interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant';
@@ -36,106 +37,123 @@ export class AiService {
 
   readonly isLoading = signal(false);
   readonly hasError = signal(false);
-  readonly isUsingFallback = signal(false);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private spotify: SpotifyService) {}
 
   generateSearchParams(intent: DiscoveryIntent): Observable<AiSearchParams> {
-    if (!environment.openRouterApiKey) {
-      this.isUsingFallback.set(true);
-      return this.generateFallbackParams(intent);
+    if (!environment.openRouterApiKey && !environment.openRouterBaseUrl.includes('/api/openai')) {
+      return throwError(() => new Error('OpenRouter API key is missing.'));
     }
 
     this.isLoading.set(true);
     this.hasError.set(false);
-    this.isUsingFallback.set(false);
 
-    const prompt = this.buildPrompt(intent);
-    const request: OpenRouterRequest = {
-      model: this.model,
-      messages: [
-        {
-          role: 'system',
-          content: this.buildSystemPrompt(),
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 800,
-      response_format: { type: 'json_object' },
-    };
+    return this.spotify.getTasteProfile().pipe(
+      switchMap(tasteProfile => {
+        const prompt = this.buildPrompt(intent, tasteProfile);
+        if (!environment.production) {
+          console.log('[Dev] Spotify AI Discovery - Prompt generated:', prompt);
+        }
 
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${environment.openRouterApiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://spotify-ai-discovery.vercel.app',
-      'X-Title': 'Spotify AI Discovery',
-    });
+        const request: OpenRouterRequest = {
+          model: this.model,
+          messages: [
+            {
+              role: 'system',
+              content: this.buildSystemPrompt(),
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 500,
+          response_format: { type: 'json_object' },
+        };
 
-    return this.http
-      .post<OpenRouterResponse>(`${this.baseUrl}/chat/completions`, request, { headers })
-      .pipe(
-        timeout(this.requestTimeout),
-        map((response) => this.parseResponse(response, intent)),
-        catchError((error) => {
-          this.hasError.set(true);
-          this.isUsingFallback.set(true);
-          return this.generateFallbackParams(intent);
-        }),
-      );
+        const headers = new HttpHeaders({
+          Authorization: `Bearer ${environment.openRouterApiKey || 'proxy'}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://spotify-ai-discovery.netlify.app',
+          'X-Title': 'Spotify AI Discovery',
+        });
+
+        return this.http.post<OpenRouterResponse>(`${this.baseUrl}/chat/completions`, request, { headers }).pipe(
+          timeout(this.requestTimeout),
+          map((response) => this.parseResponse(response, intent)),
+          catchError((error) => {
+            console.error('OpenRouter request failed:', error);
+            this.hasError.set(true);
+            return throwError(() => error);
+          })
+        );
+      }),
+      catchError(err => {
+         this.hasError.set(true);
+         return throwError(() => err);
+      })
+    );
   }
 
   refineSearchParams(
-    currentParams: AiSearchParams,
+    currentPlaylist: GeneratedPlaylist,
     feedbackType: FeedbackType['type'],
   ): Observable<AiSearchParams> {
-    if (!environment.openRouterApiKey) {
-      this.isUsingFallback.set(true);
-      return this.generateRefinedFallbackParams(currentParams, feedbackType);
+    if (!environment.openRouterApiKey && !environment.openRouterBaseUrl.includes('/api/openai')) {
+      return throwError(() => new Error('OpenRouter API key is missing.'));
     }
 
     this.isLoading.set(true);
     this.hasError.set(false);
 
-    const prompt = this.buildRefinementPrompt(currentParams, feedbackType);
-    const request: OpenRouterRequest = {
-      model: this.model,
-      messages: [
-        {
-          role: 'system',
-          content: this.buildSystemPrompt(),
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.8,
-      max_tokens: 800,
-      response_format: { type: 'json_object' },
-    };
+    return this.spotify.getTasteProfile().pipe(
+      switchMap(tasteProfile => {
+        const prompt = this.buildRefinementPrompt(currentPlaylist, feedbackType, tasteProfile);
+        if (!environment.production) {
+          console.log('[Dev] Spotify AI Discovery - Refinement Prompt generated:', prompt);
+        }
 
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${environment.openRouterApiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://spotify-ai-discovery.vercel.app',
-      'X-Title': 'Spotify AI Discovery',
-    });
+        const request: OpenRouterRequest = {
+          model: this.model,
+          messages: [
+            {
+              role: 'system',
+              content: this.buildSystemPrompt(),
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          temperature: 0.8,
+          max_tokens: 500,
+          response_format: { type: 'json_object' },
+        };
 
-    return this.http
-      .post<OpenRouterResponse>(`${this.baseUrl}/chat/completions`, request, { headers })
-      .pipe(
-        timeout(this.requestTimeout),
-        map((response) => this.parseResponse(response, null)),
-        catchError((error) => {
-          this.hasError.set(true);
-          this.isUsingFallback.set(true);
-          return this.generateRefinedFallbackParams(currentParams, feedbackType);
-        }),
-      );
+        const headers = new HttpHeaders({
+          Authorization: `Bearer ${environment.openRouterApiKey || 'proxy'}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://spotify-ai-discovery.netlify.app',
+          'X-Title': 'Spotify AI Discovery',
+        });
+
+        return this.http
+          .post<OpenRouterResponse>(`${this.baseUrl}/chat/completions`, request, { headers })
+          .pipe(
+            timeout(this.requestTimeout),
+            map((response) => this.parseResponse(response, null)),
+            catchError((error) => {
+              this.hasError.set(true);
+              return throwError(() => error);
+            }),
+          );
+      }),
+      catchError(err => {
+        this.hasError.set(true);
+        return throwError(() => err);
+      })
+    );
   }
 
   private buildSystemPrompt(): string {
@@ -148,65 +166,141 @@ Always respond with a valid JSON object matching exactly this structure:
   "genres": ["array", "of", "specific", "genre", "names"],
   "mood": "string (single descriptive mood word or phrase)",
   "tempo": "string (Slow / Medium / Fast / Energetic)",
-  "artistPreferences": ["array", "of", "artist", "style", "descriptors"],
+  "energy": "string (Low / Medium / High)",
+  "activity": "string (e.g. Chill, Study, Workout, Focus, Commute, Party)",
+  "artistPreferences": ["array", "of", "artist", "style", "descriptors", "or", "artist", "names"],
   "excludedGenres": ["array", "of", "genres", "to", "avoid"],
   "searchKeywords": ["array", "of", "spotify", "search", "terms"],
+  "discoveryLevel": "string (Familiar / Balanced / Deep Cuts)",
   "recommendationExplanation": "string (2-3 sentences explaining why these choices match the intent)",
   "refinementSuggestions": ["array", "of", "2-3", "user", "suggestions", "for", "next", "steps"]
 }
 
-Focus on underrepresented and emerging artists when appropriate. Be specific with genres. Avoid clichés.`;
+Constraints:
+1. Suggest up to 20 tracks indirectly by balancing the user's intent with their listening history.
+2. Avoid excessive repetition of their top artists; favor discovery of new but similar artists.
+3. Be specific with genres.
+4. Avoid clichés.`;
   }
 
-  private buildPrompt(intent: DiscoveryIntent): string {
+  private buildPrompt(intent: DiscoveryIntent, taste: TasteProfile): string {
     const answersText = Object.entries(intent.answers)
       .map(([key, value]) => `- ${key}: ${value}`)
       .join('\n');
+
+    let historyText = 'No Spotify listening history available.';
+    if (taste.topArtists.length > 0 || taste.topTracks.length > 0 || taste.recentlyPlayed.length > 0) {
+      historyText = `User's Listening Profile:
+- Top Artists: ${taste.topArtists.slice(0, 5).join(', ')}
+- Top Tracks: ${taste.topTracks.slice(0, 5).join(', ')}
+- Recently Played: ${taste.recentlyPlayed.slice(0, 5).map(t => `${t.title} by ${t.artist}`).join(', ')}
+
+Please use this history to inform your recommendations but do NOT simply return their top tracks. Discover new music that fits their intent and aligns with their taste.`;
+    }
 
     return `User selected the discovery mode: "${intent.modeTitle}"
 
 Their answers:
 ${answersText}
 
-Generate music search parameters that perfectly match this intent. Be creative but precise.`;
+${historyText}
+
+Generate music search parameters that perfectly match this intent while introducing fresh but relevant sounds.`;
   }
 
   private buildRefinementPrompt(
-    currentParams: AiSearchParams,
+    currentPlaylist: GeneratedPlaylist,
     feedbackType: FeedbackType['type'],
+    taste: TasteProfile
   ): string {
     const feedbackMap: Record<FeedbackType['type'], string> = {
-      more_like_this: 'The user wants more music that sounds similar to the current playlist. Reinforce the same sonic palette and mood.',
-      less_like_this: 'The user dislikes this direction. Pivot significantly — change the mood, tempo, or overall feel.',
-      different_artists: 'Keep the same genre and mood, but focus on entirely different, fresh artist profiles.',
-      different_genres: 'Maintain the same energy and tempo, but shift to completely different genre territory.',
-      refresh: 'Generate a fresh variation with slight differences while keeping the core intent intact.',
+      more_like_this: 'MORE LIKE THIS: Increase similarity to the current tracks. Keep the mood and activity, but add a few new discovery tracks. Make sure to stay within the original intent.',
+      less_like_this: 'LESS LIKE THIS: Reduce similarity to the current tracks. Move further away from the current songs while keeping the original user intent.',
+      different_artists: 'DIFFERENT ARTISTS: Keep the same genre, mood, and activity, but swap the artists. Exclude the artists that are already in the playlist (avoid: ' + currentPlaylist.tracks.map(t => t.artist).join(', ') + ').',
+      different_genres: 'DIFFERENT GENRES: Keep the same mood and activity, but explore adjacent genres. Keep the energy consistent. Exclude the genres used previously (avoid: ' + currentPlaylist.aiParams.genres.join(', ') + ').',
+      refresh: 'REFRESH PLAYLIST: Keep the exact same curation strategy, but provide entirely fresh tracks. Minimal overlap with the previous tracks.',
     };
 
-    return `Current playlist parameters:
-${JSON.stringify(currentParams, null, 2)}
+    let historyText = 'No Spotify listening history available.';
+    if (taste.topArtists.length > 0 || taste.topTracks.length > 0 || taste.recentlyPlayed.length > 0) {
+      historyText = `User's Listening Profile:
+- Top Artists: ${taste.topArtists.slice(0, 5).join(', ')}
+- Top Tracks: ${taste.topTracks.slice(0, 5).join(', ')}
+- Recently Played: ${taste.recentlyPlayed.slice(0, 5).map(t => `${t.title} by ${t.artist}`).join(', ')}`;
+    }
 
-User feedback: ${feedbackMap[feedbackType]}
+    const previousPlaylistInfo = {
+      title: currentPlaylist.title,
+      description: currentPlaylist.description,
+      explanation: currentPlaylist.explanation,
+      genres: currentPlaylist.aiParams.genres,
+      mood: currentPlaylist.aiParams.mood,
+      tempo: currentPlaylist.aiParams.tempo,
+      energy: currentPlaylist.aiParams.energy || 'Medium',
+      activity: currentPlaylist.aiParams.activity || 'General',
+      artistPreferences: currentPlaylist.aiParams.artistPreferences,
+      discoveryLevel: currentPlaylist.aiParams.discoveryLevel || 'Balanced',
+      tracks: currentPlaylist.tracks.map(t => `${t.title} by ${t.artist}`)
+    };
 
-Generate refined search parameters based on this feedback. Preserve what worked, address what did not.`;
+    return `You are refining an existing playlist.
+Here is the previous playlist context:
+${JSON.stringify(previousPlaylistInfo, null, 2)}
+
+${historyText}
+
+Refinement Instruction:
+${feedbackMap[feedbackType]}
+
+Generate refined search parameters based on this instruction. You must preserve the core user intent, mood, and activity, but modify the specific parameters (genres, artists, searchKeywords, discoveryLevel) as instructed. Never produce an unrelated playlist.`;
   }
 
   private parseResponse(
     response: OpenRouterResponse,
     _intent: DiscoveryIntent | null,
   ): AiSearchParams {
+    const rawContent = response.choices[0]?.message?.content;
+    if (!environment.production) {
+      console.log('[Dev] Spotify AI Discovery - Raw Response:', rawContent);
+    }
+
+    if (!rawContent) {
+      throw new Error('Empty response from AI');
+    }
+
     try {
-      const content = response.choices[0]?.message?.content;
-      if (!content) {
-        throw new Error('Empty response from AI');
+      let cleanContent = rawContent.trim();
+      
+      // Clean markdown code blocks if present
+      if (cleanContent.includes('```')) {
+        const matches = cleanContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (matches && matches[1]) {
+          cleanContent = matches[1].trim();
+        } else {
+          cleanContent = cleanContent.replace(/^```[a-zA-Z]*\s*/, '').replace(/\s*```$/, '').trim();
+        }
       }
-      const parsed = JSON.parse(content) as AiSearchParams;
+
+      // Find boundaries of the JSON object
+      const firstCurly = cleanContent.indexOf('{');
+      const lastCurly = cleanContent.lastIndexOf('}');
+      if (firstCurly !== -1 && lastCurly !== -1) {
+        cleanContent = cleanContent.substring(firstCurly, lastCurly + 1);
+      }
+
+      const parsed = JSON.parse(cleanContent) as AiSearchParams;
       this.validateParams(parsed);
       this.isLoading.set(false);
+
+      if (!environment.production) {
+        console.log('[Dev] Spotify AI Discovery - Parsed JSON:', parsed);
+      }
+
       return parsed;
-    } catch {
+    } catch (e) {
       this.isLoading.set(false);
-      throw new Error('Failed to parse AI response');
+      console.error('Failed to parse AI response. Raw content:', rawContent, 'Error:', e);
+      throw new Error('Failed to parse AI response. The response was malformed.');
     }
   }
 
@@ -229,136 +323,5 @@ Generate refined search parameters based on this feedback. Preserve what worked,
         throw new Error(`Missing required field: ${String(field)}`);
       }
     }
-  }
-
-  private generateFallbackParams(intent: DiscoveryIntent): Observable<AiSearchParams> {
-    const fallbackMap: Record<string, AiSearchParams> = {
-      'hidden-gems': {
-        playlistTitle: 'Below the Radar',
-        playlistDescription: 'Curated tracks from artists flying under the mainstream radar, selected to match your taste for discovery.',
-        genres: ['Indie Folk', 'Lo-fi Indie', 'Dream Pop', 'Bedroom Pop'],
-        mood: 'Exploratory and intimate',
-        tempo: 'Medium',
-        artistPreferences: ['Emerging', 'Underground', 'Bedroom producers'],
-        excludedGenres: ['Top 40 Pop', 'Commercial EDM', 'Mainstream Hip-Hop'],
-        searchKeywords: ['indie hidden gems', 'emerging artists', 'underground folk', 'bedroom pop 2024'],
-        recommendationExplanation: 'These tracks were selected because they come from artists with strong cult followings but limited mainstream exposure. Each song offers something distinctive that most listeners have not encountered yet.',
-        refinementSuggestions: ['Try "More like this" to stay underground', 'Select "Different genres" to explore another niche', 'Choose "Different artists" to find more emerging names'],
-      },
-      'workout': {
-        playlistTitle: `Power Session`,
-        playlistDescription: `High-octane tracks engineered for peak physical performance, matched to your workout intensity.`,
-        genres: ['Electronic', 'Hip-Hop', 'Rock', 'Drum and Bass'],
-        mood: 'Energised and driven',
-        tempo: 'Fast',
-        artistPreferences: ['High energy', 'Bass-heavy', 'Motivational'],
-        excludedGenres: ['Classical', 'Jazz', 'Acoustic'],
-        searchKeywords: ['workout music', 'high energy beats', 'gym playlist', 'motivational tracks'],
-        recommendationExplanation: 'These tracks were chosen for their high BPM, driving rhythm, and motivational energy. They are designed to sync with the natural momentum of physical exertion.',
-        refinementSuggestions: ['Try "More like this" for more pump', 'Select "Different genres" for a new sound', 'Choose "Refresh" for a different set at the same energy'],
-      },
-      'focus': {
-        playlistTitle: 'Deep Focus Mode',
-        playlistDescription: 'Carefully selected instrumental and minimal-lyric tracks to keep you in a productive flow state.',
-        genres: ['Ambient', 'Lo-fi Hip-Hop', 'Instrumental Electronic', 'Modern Classical'],
-        mood: 'Focused and calm',
-        tempo: 'Medium',
-        artistPreferences: ['Instrumental', 'Minimal', 'Atmospheric'],
-        excludedGenres: ['Heavy Metal', 'Trap', 'Pop'],
-        searchKeywords: ['focus music', 'instrumental study', 'lo-fi beats', 'ambient concentration'],
-        recommendationExplanation: 'These tracks have been selected for their ability to stimulate without distracting. The minimal or absent lyrics allow your cognitive resources to stay on the task at hand.',
-        refinementSuggestions: ['Try "Instrumentals only" for zero distraction', 'Select "Different genres" to try ambient classical', 'Choose "More like this" to deepen the focus state'],
-      },
-      'commute': {
-        playlistTitle: 'Journey Soundtrack',
-        playlistDescription: 'A dynamic playlist that transforms your commute into a cinematic experience.',
-        genres: ['Indie Pop', 'Alternative', 'Electronic', 'Post-Rock'],
-        mood: 'Reflective and energised',
-        tempo: 'Medium',
-        artistPreferences: ['Melodic', 'Atmospheric', 'Narrative'],
-        excludedGenres: ['Harsh noise', 'Death Metal'],
-        searchKeywords: ['commute playlist', 'indie pop journey', 'alternative road trip', 'travel music'],
-        recommendationExplanation: 'These tracks match the rhythm of urban transit — dynamic enough to energise, melodic enough to transport you mentally beyond the commute itself.',
-        refinementSuggestions: ['Try "More like this" for the same cinematic feel', 'Select "Different genres" for something edgier', 'Choose "Refresh" for a new commute set'],
-      },
-      'chill': {
-        playlistTitle: 'Slow Everything Down',
-        playlistDescription: 'A warm, enveloping collection designed to help you decompress and be present.',
-        genres: ['Chillwave', 'Neo-Soul', 'Ambient Pop', 'Indie R&B'],
-        mood: 'Relaxed and warm',
-        tempo: 'Slow',
-        artistPreferences: ['Smooth', 'Soulful', 'Warm textures'],
-        excludedGenres: ['Metal', 'Punk', 'Hard EDM'],
-        searchKeywords: ['chill vibes', 'relax music', 'neo soul chill', 'ambient pop'],
-        recommendationExplanation: 'Each track in this set has been selected for its ability to lower cortisol and invite presence. The warm sonic textures and unhurried tempos are deliberately chosen for the post-work decompression ritual.',
-        refinementSuggestions: ['Try "More like this" to go deeper into the chill', 'Select "Different artists" for fresh chill voices', 'Choose "Different genres" for an acoustic alternative'],
-      },
-      'surprise-me': {
-        playlistTitle: 'Uncharted Territory',
-        playlistDescription: 'AI took full creative control. Buckle up for a sonic journey across unexpected genres and eras.',
-        genres: ['Art Rock', 'Afrobeat', 'Bossa Nova', 'Psych Pop'],
-        mood: 'Adventurous and curious',
-        tempo: 'Mixed',
-        artistPreferences: ['Eclectic', 'World-influenced', 'Genre-defying'],
-        excludedGenres: [],
-        searchKeywords: ['eclectic mix', 'world music fusion', 'genre defying', 'art rock psychedelic'],
-        recommendationExplanation: 'The AI deliberately crossed genre boundaries to challenge your listening habits. Each track was chosen to be surprising yet sonically coherent — a curated accident.',
-        refinementSuggestions: ['Try "Different artists" for more surprises', 'Select "More like this" if you loved the direction', 'Choose "Refresh" for another wild card set'],
-      },
-    };
-
-    const params = fallbackMap[intent.modeId] ?? fallbackMap['surprise-me'];
-    this.isLoading.set(false);
-
-    return new Observable<AiSearchParams>((observer) => {
-      timer(800).subscribe(() => {
-        observer.next(params);
-        observer.complete();
-      });
-    });
-  }
-
-  private generateRefinedFallbackParams(
-    currentParams: AiSearchParams,
-    feedbackType: FeedbackType['type'],
-  ): Observable<AiSearchParams> {
-    const refined = { ...currentParams };
-
-    switch (feedbackType) {
-      case 'more_like_this':
-        refined.playlistTitle = `More: ${currentParams.playlistTitle}`;
-        refined.recommendationExplanation = `Based on your positive feedback, we doubled down on the elements that defined the previous set.`;
-        break;
-      case 'less_like_this':
-        refined.playlistTitle = 'New Direction';
-        refined.genres = ['Post-Rock', 'Alternative Folk', 'Dreamy Electronic'];
-        refined.mood = 'Contrasting';
-        refined.recommendationExplanation = `You indicated the previous direction wasn't right, so we pivoted to a contrasting sonic space.`;
-        break;
-      case 'different_artists':
-        refined.playlistTitle = `Fresh Voices: ${currentParams.playlistTitle}`;
-        refined.artistPreferences = ['New voices', 'Different backgrounds', 'Fresh perspectives'];
-        refined.recommendationExplanation = `Same genre territory, entirely new set of artists to explore.`;
-        break;
-      case 'different_genres':
-        refined.playlistTitle = 'Genre Shift';
-        refined.genres = ['New Wave', 'Funk', 'Soul', 'Jazz Fusion'];
-        refined.recommendationExplanation = `We shifted the genre palette completely while maintaining a similar energy and tempo.`;
-        break;
-      case 'refresh':
-        refined.playlistTitle = `${currentParams.playlistTitle} (Refreshed)`;
-        refined.searchKeywords = [...currentParams.searchKeywords, 'fresh', 'new'];
-        refined.recommendationExplanation = `A fresh variation with the same core intent but different specific tracks.`;
-        break;
-    }
-
-    this.isLoading.set(false);
-
-    return new Observable<AiSearchParams>((observer) => {
-      timer(600).subscribe(() => {
-        observer.next(refined);
-        observer.complete();
-      });
-    });
   }
 }
